@@ -81,7 +81,7 @@
   //     object.on('expand', function(){ alert('expanded'); });
   //     object.trigger('expand');
   //
-  var Events = Backbone.Events = {};
+  var Events = Backbone.Events = function Events() {};
 
   // Regular expression used to split event strings.
   var eventSplitter = /\s+/;
@@ -175,7 +175,23 @@
   // `_listening` variable.
   var tryCatchOn = function(obj, name, callback, context) {
     try {
-      obj.on(name, callback, context);
+      if ( obj instanceof Backbone.$ ) {
+        if ( _.isString(name) ) {
+          var tmp = {};
+          tmp[ name ] = callback;
+          name = tmp;    
+        } 
+        
+        for (var key in name) {
+          var originalCallback = name[key],
+              bindedCallback = _.bind(originalCallback, context);
+          originalCallback.bindedCallback = bindedCallback;
+          
+          obj.on(key, bindedCallback);
+        }
+      } else {
+        obj.on(name, callback, context);
+      }
     } catch (e) {
       return e;
     }
@@ -208,8 +224,27 @@
       // If listening doesn't exist, this object is not currently
       // listening to obj. Break out early.
       if (!listening) break;
-
-      listening.obj.off(name, callback, this);
+      
+      if ( listening.obj instanceof Backbone.$ ) {
+        if ( !name || name in listening._events ) {
+          var names = name ? [name] : _.keys(listening._events);
+          for (var j = 0; j < names.length; j++) {
+            var _name = names[j];
+            var callbacks = callback ? [{callback: callback}] : listening._events[ _name ];
+            
+            for (var k = 0; k < callbacks.length; k++) {
+              var _callback = callbacks[ k ].callback;
+              if ( _callback.bindedCallback ) {
+                _callback = _callback.bindedCallback;
+              }
+              listening.obj.off(name, _callback);
+            }
+          }
+        }
+      } else {
+        listening.obj.off(name, callback, this);
+      }
+      
       if (listening.interop) listening.off(name, callback);
     }
     if (_.isEmpty(listeningTo)) this._listeningTo = void 0;
@@ -263,7 +298,10 @@
         delete events[name];
       }
     }
-
+    
+    if ( _.isEmpty(events) ) {
+        events = void 0;
+    }
     return events;
   };
 
@@ -384,6 +422,7 @@
   // Allow the `Backbone` object to serve as a global event bus, for folks who
   // want global "pubsub" in a convenient place.
   _.extend(Backbone, Events);
+  _.extend(Backbone.Events.prototype, Events);
 
   // Backbone.Model
   // --------------
