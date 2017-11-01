@@ -512,5 +512,18 @@
     assert.notEqual(oldEl, myView.el);
     assert.notEqual($oldEl, myView.$el);
   });
+  
+  QUnit.test('set className in extend', function(assert) {
+    assert.expect(3);
+      
+    var ChildView1 = Backbone.View.extend("ChildView1");
+    assert.equal(ChildView1.className, "ChildView1");
+    
+    var ChildView2 = Backbone.View.extend("ChildView2", {});
+    assert.equal(ChildView2.className, "ChildView2");
+    
+    var ChildView3 = Backbone.View.extend("ChildView3", {}, {});
+    assert.equal(ChildView3.className, "ChildView3");
+  });
 
 })(QUnit);

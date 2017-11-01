@@ -2047,7 +2047,16 @@
   // Helper function to correctly set up the prototype chain for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
   // class properties to be extended.
-  var extend = function(protoProps, staticProps) {
+  var extend = function(className, protoProps, staticProps) {
+    if ( !_.isString(className) ) {
+      staticProps = protoProps;
+      protoProps = className;
+      className = "Child";
+    }
+    if ( !/^[a-z]\w*$/i.test(className, "") ) {
+      throw new Error("invalid className: '" + className + "'\n className must be are word");
+    }
+        
     var parent = this;
     var child;
 
@@ -2057,9 +2066,11 @@
     if (protoProps && _.has(protoProps, 'constructor')) {
       child = protoProps.constructor;
     } else {
-      child = function(){ return parent.apply(this, arguments); };
+      // when need debugg memory leaks, you need find object by className
+      child = new Function("parent", "return function " + className + "(){return parent.apply(this, arguments)};")(parent);// jshint ignore: line
     }
-
+    child.className = className;
+    
     // Add static properties to the constructor function, if supplied.
     _.extend(child, parent, staticProps);
 
