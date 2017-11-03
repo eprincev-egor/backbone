@@ -32,7 +32,7 @@
 
   QUnit.test('$', function(assert) {
     assert.expect(2);
-    var myView = new Backbone.View;
+    var myView = new Backbone.View();
     myView.setElement('<p><a><b>test</b></a></p>');
     var result = myView.$('a b');
 
@@ -42,7 +42,7 @@
 
   QUnit.test('$el', function(assert) {
     assert.expect(3);
-    var myView = new Backbone.View;
+    var myView = new Backbone.View();
     myView.setElement('<p><a><b>test</b></a></p>');
     assert.strictEqual(myView.el.nodeType, 1);
 
@@ -85,7 +85,7 @@
 
   QUnit.test('render', function(assert) {
     assert.expect(1);
-    var myView = new Backbone.View;
+    var myView = new Backbone.View();
     assert.equal(myView.render(), myView, '#render returns the view instance');
   });
 
@@ -328,7 +328,7 @@
       }
     });
 
-    var myView = new View;
+    var myView = new View();
     assert.strictEqual(myView.el.className, 'backboneClass');
     assert.strictEqual(myView.el.id, 'backboneId');
     assert.strictEqual(myView.$el.attr('class'), 'backboneClass');
@@ -349,11 +349,11 @@
       }
     });
 
-    var view1 = new View;
+    var view1 = new View();
     $el.trigger('click');
     assert.equal(1, count);
 
-    var view2 = new View;
+    var view2 = new View();
     $el.trigger('click');
     assert.equal(3, count);
 
@@ -371,7 +371,7 @@
       }
     });
 
-    var myView = new View;
+    var myView = new View();
     $('body').trigger('fake$event').trigger('fake$event');
 
     $('body').off('fake$event');
@@ -432,8 +432,8 @@
     });
 
     var myView = new View({
-      model: new Backbone.Model,
-      collection: new Backbone.Collection
+      model: new Backbone.Model(),
+      collection: new Backbone.Collection()
     });
 
     myView.stopListening();
@@ -449,7 +449,7 @@
       }
     });
 
-    var myView = new View;
+    var myView = new View();
     assert.ok(myView.$el.is('p'));
     assert.ok(myView.$el.has('a'));
   });
@@ -477,7 +477,7 @@
 
   QUnit.test('remove', function(assert) {
     assert.expect(2);
-    var myView = new Backbone.View;
+    var myView = new Backbone.View();
     document.body.appendChild(view.el);
 
     myView.delegate('click', function() { assert.ok(false); });
