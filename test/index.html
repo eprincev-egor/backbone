@@ -25,5 +25,42 @@
   <script type="text/template" id="test1"><input <%= value("name") %>/></script>
   <script type="text/template" id="test2"><textarea <%= value("name") %>/></script>
 
+  <script type="text/template" id="tree-view-template">
+      <span><%- name %></span>
+      <%
+        for (var i=0, n=childs.length; i<n; i++) {
+            var child = childs[ i ];
+            TreeView({
+                model: child
+            });
+        }
+      %>
+  </script>
+
+  <script type="text/template" id="input-list-template">
+      <h1>List of most popular given names in USA</h1>
+      <%
+          var collection = this.collection;
+          for (var i=0, n=collection.length; i<n; i++) {
+              var model = collection.at(i);
+              %>
+              <div>
+                  <input <%= value( model, "name" ) %>/>
+                  <a href="javascript:void 0" class="remove" data-index="<%= i %>">
+                      remove name <%- model.get("name") %>
+                  </a>
+              </div>
+              <%
+          }
+      %>
+
+      <div>
+          <input placeholder="enter name" <%= value( "newName" ) %>/>
+          <button class="add">add item</button>
+      </div>
+
+      <div>Total count: <%= collection.length %></div>
+  </script>
+
 </body>
 </html>

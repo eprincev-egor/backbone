@@ -22,9 +22,21 @@
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
     _.extend(this, _.pick(options, viewOptions));
-    if ( !(this.model instanceof Backbone.Model) ) {
+
+    if (
+        (this.Model || this.model) &&
+        !(this.model instanceof Backbone.Model)
+    ) {
         var Model = this.Model || Backbone.Model;
         this.model = new Model(this.model);
+    }
+
+    if (
+        (this.Collection || this.collection) &&
+        !(this.collection instanceof Backbone.Collection)
+    ) {
+        var Collection = this.Collection || Backbone.Collection;
+        this.collection = new Collection(this.collection);
     }
 
     // need for detach handlers
@@ -103,10 +115,6 @@
         return this;
       }
 
-      if ( !this.model ) {
-          this.model = new this.Model();
-      }
-
       if ( this._rendered ) {
           this._liveRender();
       } else {
@@ -124,8 +132,18 @@
     _firstRender: function() {
         this.templateCache = this.template();
         this.el.innerHTML = this.templateCache;
-        this.listenTo(this.model, "change", this._onChangeModel);
+        this._listenData();
         this.afterInsertHTML();
+    },
+
+    _listenData: function() {
+        if ( this.model ) {
+            this.listenTo(this.model, "change", this._onChangeModel);
+        }
+
+        if ( this.collection ) {
+            this.listenTo(this.collection, "all", this._onChangeCollection);
+        }
     },
 
     _liveRender: function() {
@@ -173,6 +191,10 @@
     },
 
     _onChangeModel: function() {
+        this.render();
+    },
+
+    _onChangeCollection: function() {
         this.render();
     },
 
@@ -226,7 +248,7 @@
 
         // need for virtual dom
         this.templateCache = this.template();
-        this.listenTo(this.model, "change", this._onChangeModel);
+        this._listenData();
 
         return open + this.templateCache + close;
     },
@@ -426,6 +448,11 @@
             return;
         }
 
+        // event in childView
+        if ( e._processCid && e._processCid !== this.cid ) {
+            return;
+        }
+
         // ===============
         // <%= value %>
         // <%= checked %>
@@ -457,7 +484,11 @@
                 continue;
             }
 
-            this._processEvent(e, eventSelector, method);
+            var result = this._processEvent(e, eventSelector, method);
+            if ( result === true ) {
+                // stop propagation
+                e._processCid = this.cid;
+            }
         }
     },
 
@@ -481,8 +512,6 @@
             elements = [this.el];
         } else {
             elements = this.el.querySelectorAll( selector );
-            //elements = Array.prototype.slice.call( elements );
-            //elements.push( this.el );
         }
 
         if ( !elements || !elements.length ) {
@@ -615,8 +644,8 @@
             templateString = (
                 "<%"+
                 " scope = new this.TemplateScope(this, print);"+
-                " var model = this.model; "+
-                "with(model.attributes) {with(scope) { %>" +
+                " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}; "+
+                "with(_modelAttribures) {with(scope) { %>" +
                     templateString +
                 "<% } } %>"
             );
@@ -632,28 +661,34 @@
         // потомки наследуют scope родителей
         proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");
 
-        var ViewsInTemplateScope = [];
-
-        // proto.View = [ChildView1, ChildView2, ...]
+        // proto.Views = [ChildView1, ChildView2, ...]
         // convert to
-        // View.ChildView1 = ChildView1
-        // View.ChildView2 = ChildView2
+        // Views.ChildView1 = ChildView1
+        // Views.ChildView2 = ChildView2
         // ...
         var Views = {};
+        Views[ child.className ] = child; // for Tree
+
         if ( _.isArray(proto.Views) ) {
-            ViewsInTemplateScope = proto.Views.slice();
-            proto.Views.forEach(function(ChildView) {
+            _.each(proto.Views, function(ChildView) {
                 Views[ ChildView.className ] = ChildView;
             });
         }
+        // proto.Views = { menu: SomeMenuView }
+        else if ( _.isObject(proto.Views) ) {
+            _.extend(Views, proto.Views);
+        }
+
         proto.Views = Views;
 
-        ViewsInTemplateScope.push( child ); // for Tree
         // дочерние классы, которые будут использоваться в шаблонах
-        ViewsInTemplateScope.forEach(function(View) {
-            proto.TemplateScope.prototype[ View.className ] = function(options) {
+        _.each(Views, function(value, key) {
+            proto.TemplateScope.prototype[ key ] = function(options) {
+                if ( !options ) {
+                    options = {};
+                }
                 var scope = this;
-                options.type = View.className;
+                options.type = key;
                 return scope.View(options);
             };
         });

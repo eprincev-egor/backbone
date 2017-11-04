@@ -619,4 +619,115 @@
     assert.ok( $span.text() == "not <bob>" );
   });
 
+  QUnit.test("treeView", function(assert) {
+
+    var TreeView = Backbone.View.extend("TreeView", {
+        template: "#tree-view-template",
+        model: {
+            name: "",
+            childs: []
+        }
+    });
+
+    var data = {
+        name: "item 1",
+        opened: true,
+        childs: [
+            {
+                name: "item 1.1"
+            },
+            {
+                name: "item 1.2",
+                childs: [
+                    {
+                        name: "item 1.2.1"
+                    },
+                    {
+                        name: "item 1.2.2"
+                    },
+                    {
+                        // without name
+                    }
+                ]
+            }
+        ]
+    };
+
+    var treeView = new TreeView({
+        model: data
+    });
+    treeView.render();
+
+    // check order
+    assert.equal( treeView.$("span").eq(0).text(), "item 1" );
+    assert.equal( treeView.$("span").eq(1).text(), "item 1.1" );
+    assert.equal( treeView.$("span").eq(2).text(), "item 1.2" );
+    assert.equal( treeView.$("span").eq(3).text(), "item 1.2.1" );
+    assert.equal( treeView.$("span").eq(4).text(), "item 1.2.2" );
+    assert.equal( treeView.$("span").eq(5).text(), "" );
+
+    // check structure
+    assert.equal( treeView.$("> span").eq(0).text(), "item 1" );
+    assert.equal( treeView.$("div span").eq(0).text(), "item 1.1" );
+    assert.equal( treeView.$("div span").eq(1).text(), "item 1.2" );
+    assert.equal( treeView.$("div div span").eq(0).text(), "item 1.2.1" );
+    assert.equal( treeView.$("div div span").eq(1).text(), "item 1.2.2" );
+
+  });
+
+  QUnit.test("inputList", function(assert) {
+      var InputListView = Backbone.View.extend("InputListView", {
+          template: "#input-list-template",
+
+          events: {
+              "click .remove": "onClickRemove",
+              "click .add": "onClickAdd"
+          },
+
+          model: {
+              newName: ""
+          },
+
+          onClickRemove: function(e) {
+              var index = e.target.getAttribute("data-index"),
+                  model = this.collection.at( index );
+
+              this.collection.remove( model );
+          },
+
+          onClickAdd: function(e) {
+              var newName = this.model.get("newName").trim();
+
+              if ( !newName ) {
+                  return;
+              }
+
+              this.collection.add({
+                  name: newName
+              });
+              this.model.set({
+                  newName: ""
+              });
+          }
+      });
+
+      var inputListView = new InputListView({
+          collection: [
+              {name: "James"},
+              {name: "John"},
+              {name: "Robert"},
+              {name: "Michael"},
+              {name: "William"},
+              {name: "David"},
+              {name: "Richard"},
+              {name: "Charles"},
+              {name: "Joseph"},
+              {name: "Thomas"}
+          ]
+      });
+      inputListView.render();
+
+      assert.equal( inputListView.$("a.remove").length, 10 );
+  });
+
 })(QUnit);
