@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   var view;
 
@@ -512,18 +513,110 @@
     assert.notEqual(oldEl, myView.el);
     assert.notEqual($oldEl, myView.$el);
   });
-  
+
   QUnit.test('set className in extend', function(assert) {
     assert.expect(3);
-      
+
     var ChildView1 = Backbone.View.extend("ChildView1");
     assert.equal(ChildView1.className, "ChildView1");
-    
+
     var ChildView2 = Backbone.View.extend("ChildView2", {});
     assert.equal(ChildView2.className, "ChildView2");
-    
+
     var ChildView3 = Backbone.View.extend("ChildView3", {}, {});
     assert.equal(ChildView3.className, "ChildView3");
+  });
+
+  QUnit.test("render #test1 with model(name: '<test>')", function(assert) {
+    assert.expect(2);
+
+    var View = Backbone.View.extend({
+        template: "#test1"
+    });
+
+    var view = new View({
+        model: new Backbone.Model({
+            name: "<test>"
+        })
+    });
+    view.render();
+
+    var $input = view.$("input");
+    assert.ok( !!$input.length );
+    assert.ok( $input.val() == "<test>" );
+
+  });
+
+  QUnit.test("render #test2", function(assert) {
+    assert.expect(2);
+
+    var View = Backbone.View.extend({
+        template: "#test2"
+    });
+
+    var view = new View({
+        model: new Backbone.Model({
+            name: "<test textarea &>"
+        })
+    });
+    view.render();
+
+    var $textarea = view.$("textarea");
+    assert.ok( !!$textarea.length );
+    assert.ok( $textarea.val() == "<test textarea &>" );
+
+  });
+
+  QUnit.test("render template <h1hello <%- name %>></h1>", function(assert) {
+    assert.expect(2);
+
+    var View = Backbone.View.extend({
+        template: "<h1>hello <%- name %></h1>"
+    });
+
+    var view = new View({
+        model: new Backbone.Model({
+            name: "<bob>"
+        })
+    });
+    view.render();
+
+    var $h1 = view.$("h1");
+    assert.ok( !!$h1.length );
+    assert.ok( $h1.text() == "hello <bob>" );
+
+  });
+
+  QUnit.test("input binding, vdom render", function(assert) {
+
+
+    var View = Backbone.View.extend({
+        template: "<input <%= value('name') %>/><span><%- name %></span>"
+    });
+
+    var view = new View({
+        model: new Backbone.Model({
+            name: "<bob>"
+        })
+    });
+    view.render();
+
+    var $input = view.$("input");
+    assert.ok( !!$input.length );
+    assert.ok( $input.val() == "<bob>" );
+
+    var $span = view.$("span");
+    assert.ok( !!$span.length );
+    assert.ok( $span.text() == "<bob>" );
+
+    $input.val("not <bob>");
+    $input.trigger("input");
+
+    assert.ok( !!$input.length );
+    assert.ok( $input.val() == "not <bob>" );
+
+    assert.ok( !!$span.length );
+    assert.ok( $span.text() == "not <bob>" );
   });
 
 })(QUnit);

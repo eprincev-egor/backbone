@@ -3,6 +3,7 @@
     var Events = require("./Events"),
         Backbone = require("./main"),
         wrapError = Backbone.wrapError,
+        urlError = Backbone.urlError,
         _ = Backbone._;
 
     // Backbone.Model

@@ -111,7 +111,7 @@
     // `_listening` variable.
     var tryCatchOn = function(obj, name, callback, context) {
       try {
-        if ( obj instanceof Backbone.$ ) {
+        if ( Backbone.$ && obj instanceof Backbone.$ ) {
           if ( _.isString(name) ) {
             var tmp = {};
             tmp[ name ] = callback;
@@ -161,7 +161,7 @@
         // listening to obj. Break out early.
         if (!listening) break;
 
-        if ( listening.obj instanceof Backbone.$ ) {
+        if ( Backbone.$ && listening.obj instanceof Backbone.$ ) {
           if ( !name || name in listening._events ) {
             var names = name ? [name] : _.keys(listening._events);
             for (var j = 0; j < names.length; j++) {

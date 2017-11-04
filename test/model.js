@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   var ProxyModel = Backbone.Model.extend();
   var Klass = Backbone.Collection.extend({
@@ -1466,16 +1467,16 @@
     model.set({id: 3});
     assert.equal(model.id, 3);
   });
-  
+
   QUnit.test('set className in extend', function(assert) {
     assert.expect(3);
-      
+
     var ChildModel1 = Backbone.Model.extend("ChildModel1");
     assert.equal(ChildModel1.className, "ChildModel1");
-    
+
     var ChildModel2 = Backbone.Model.extend("ChildModel2", {});
     assert.equal(ChildModel2.className, "ChildModel2");
-    
+
     var ChildModel3 = Backbone.Model.extend("ChildModel3", {}, {});
     assert.equal(ChildModel3.className, "ChildModel3");
   });

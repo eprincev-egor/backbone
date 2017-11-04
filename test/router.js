@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   var router = null;
   var location = null;

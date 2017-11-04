@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   QUnit.module('Backbone.Events');
 
@@ -15,12 +16,12 @@
     obj.trigger('event');
     assert.equal(obj.counter, 5, 'counter should be incremented five times.');
   });
-  
+
   QUnit.test('listenTo jquery object', function(assert) {
     assert.expect(2);
     var obj = {counter: 0},
         $div = $("<div/>");
-    
+
     _.extend(obj, Backbone.Events);
     obj.listenTo($div, 'a', function() { obj.counter += 1; });
     $div.trigger('a');
@@ -31,7 +32,7 @@
     $div.trigger('a');
     assert.equal(obj.counter, 5, 'counter should be incremented five times.');
   });
-  
+
   QUnit.test('binding and triggering multiple events', function(assert) {
     assert.expect(4);
     var obj = {counter: 0};
@@ -52,7 +53,7 @@
     obj.trigger('a b c');
     assert.equal(obj.counter, 5);
   });
-  
+
   QUnit.test('listenTo many events, but trigger by one event name', function(assert) {
     assert.expect(3);
     var obj = {counter: 0},
@@ -71,7 +72,7 @@
     assert.equal(obj.counter, 3);
 
   });
-  
+
   QUnit.test('binding and triggering with event maps', function(assert) {
     var obj = {counter: 0};
     _.extend(obj, Backbone.Events);
@@ -102,7 +103,7 @@
     obj.trigger('a b c');
     assert.equal(obj.counter, 5);
   });
-  
+
   QUnit.test('listenTo jquery object and triggering with event maps', function(assert) {
     var obj = {counter: 0},
         $div = $("<div/>");
@@ -128,7 +129,7 @@
     $div.trigger('c');
     assert.equal(obj.counter, 3);
   });
-  
+
   QUnit.test('binding and triggering multiple event names with event maps', function(assert) {
     var obj = {counter: 0};
     _.extend(obj, Backbone.Events);
@@ -186,18 +187,18 @@
     a.stopListening();
     b.trigger('anything');
   });
-  
+
   QUnit.test('listenTo and stopListening jquery object', function(assert) {
     assert.expect(1);
     var obj = _.extend({}, Backbone.Events);
     var $div = $("<div/>");
-    
+
     obj.listenTo($div, 'something', function(){ assert.ok(true); });
     $div.trigger('something');
     obj.stopListening();
     $div.trigger('something');
   });
-  
+
   QUnit.test('listenTo and stopListening with event maps', function(assert) {
     assert.expect(4);
     var a = _.extend({}, Backbone.Events);

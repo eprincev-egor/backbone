@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   var a, b, c, d, e, col, otherCol;
 
@@ -2100,16 +2101,16 @@
     var collection = new Backbone.Collection([model]);
     assert.ok(collection.get(model));
   });
-  
+
   QUnit.test('set className in extend', function(assert) {
     assert.expect(3);
-      
+
     var ChildCollection1 = Backbone.Collection.extend("ChildCollection1");
     assert.equal(ChildCollection1.className, "ChildCollection1");
-    
+
     var ChildCollection2 = Backbone.Collection.extend("ChildCollection2", {});
     assert.equal(ChildCollection2.className, "ChildCollection2");
-    
+
     var ChildCollection3 = Backbone.Collection.extend("ChildCollection3", {}, {});
     assert.equal(ChildCollection3.className, "ChildCollection3");
   });

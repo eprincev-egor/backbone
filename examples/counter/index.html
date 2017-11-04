@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+            <title>Backbone.js input-bind</title>
+    </head>
+
+    <body>
+
+        <script src="../../vendor/underscore.js"></script>
+        <script src="../../dist/backbone.js"></script>
+
+        <script type="text/template" id="counter-template">
+            <button>click #<%- count %></button>
+        </script>
+
+        <script type="text/javascript">
+
+            var CounterView = Backbone.View.extend("CounterView", {
+                template: "#counter-template",
+
+                model: {
+                    count: 0
+                },
+
+                events: {
+                    "click button": function() {
+                        this.model.set("count", this.model.get("count") + 1);
+                    }
+                }
+            });
+
+            var counterView = new CounterView();
+            document.body.appendChild( counterView.el );
+            counterView.render();
+
+        </script>
+
+    </body>
+</html>

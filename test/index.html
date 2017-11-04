@@ -3,13 +3,13 @@
 <head>
   <meta charset='utf8'>
   <title>Backbone Test Suite</title>
-  <link rel="stylesheet" href="../src/vendor/qunit.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="../vendor/qunit.css" type="text/css" media="screen">
 </head>
 <body>
-  <script src="../src/vendor/qunit.js"></script>
-  <script src="../src/vendor/jquery.js"></script>
-  <script src="../src/vendor/json2.js"></script>
-  <script src="../src/vendor/underscore.js"></script>
+  <script src="../vendor/qunit.js"></script>
+  <script src="../vendor/jquery.js"></script>
+  <script src="../vendor/json2.js"></script>
+  <script src="../vendor/underscore.js"></script>
   <script src="../dist/backbone.js"></script>
   <script src="setup/dom-setup.js"></script>
   <script src="setup/environment.js"></script>
@@ -20,5 +20,10 @@
   <script src="router.js"></script>
   <script src="view.js"></script>
   <script src="sync.js"></script>
+
+  <!-- test view render -->
+  <script type="text/template" id="test1"><input <%= value("name") %>/></script>
+  <script type="text/template" id="test2"><textarea <%= value("name") %>/></script>
+
 </body>
 </html>

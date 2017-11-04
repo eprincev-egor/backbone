@@ -129,8 +129,21 @@
       throw new Error("invalid className: '" + className + "'\n className must be are word");
     }
 
+    if ( !protoProps ) {
+        protoProps = {};
+    }
+
+    if ( !staticProps ) {
+        staticProps = {};
+    }
+
     var parent = this;
     var child;
+
+    if ( parent._beforeExtend ) {
+        parent._beforeExtend(className, protoProps, staticProps);
+        staticProps._beforeExtend = parent._beforeExtend;
+    }
 
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
@@ -155,8 +168,12 @@
     // later.
     child.__super__ = parent.prototype;
 
+    if ( parent._afterExtend ) {
+        parent._afterExtend(child);
+    }
+
     return child;
   };
 
   // Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend;
+  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = View.TemplateScope.extend = Events.extend = extend;

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+            <title>Backbone.js tree</title>
+    </head>
+
+    <body>
+
+        <script src="../../vendor/underscore.js"></script>
+        <script src="../../dist/backbone.js"></script>
+
+        <script type="text/template" id="tree-template">
+            <% if ( childs && childs.length ) { %>
+                <b class="toggle"><%= opened ? "-" : "+" %></b>
+            <% } %>
+
+            <span><%- name %></span>
+
+            <%
+                if ( opened ) {
+                    for (var i=0, n=childs && childs.length; i<n; i++ ) {
+                        TreeView({
+                            model: childs[ i ]
+                        })
+                    }
+                }
+             %>
+        </script>
+
+        <script type="text/javascript">
+            var data = {
+                name: "item 1",
+                opened: true,
+                childs: [
+                    {
+                        name: "item 1.1"
+                    },
+                    {
+                        name: "item 1.2",
+                        childs: [
+                            {
+                                name: "item 1.2.1"
+                            },
+                            {
+                                name: "item 1.2.2"
+                            },
+                            {
+                                // without name
+                            }
+                        ]
+                    }
+                ]
+            };
+
+
+            var TreeView = Backbone.View.extend("TreeView", {
+                template: "#tree-template",
+
+                model: {
+                    name: "",
+                    opened: false,
+                    childs: []
+                },
+
+                events: {
+                    "click .toggle": "onClickToggle"
+                },
+
+                onClickToggle: function() {
+                    this.model.set("opened", !this.model.get("opened"));
+                }
+            });
+
+            var treeView = new TreeView({
+                model: data
+            });
+
+            document.body.appendChild( treeView.el );
+            treeView.render();
+
+        </script>
+
+    </body>
+</html>

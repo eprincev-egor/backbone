@@ -1,4 +1,5 @@
 (function(QUnit) {
+"use strict";
 
   QUnit.module('Backbone.noConflict');
 
