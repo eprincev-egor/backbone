@@ -727,7 +727,76 @@
       });
       inputListView.render();
 
-      assert.equal( inputListView.$("a.remove").length, 10 );
+      assert.equal( inputListView.$("a.remove").eq(0).text().trim(), "remove name James" );
+      assert.equal( inputListView.$("a.remove").eq(1).text().trim(), "remove name John" );
+      assert.equal( inputListView.$("a.remove").eq(2).text().trim(), "remove name Robert" );
+      assert.equal( inputListView.$("a.remove").eq(3).text().trim(), "remove name Michael" );
+      assert.equal( inputListView.$("a.remove").eq(4).text().trim(), "remove name William" );
+      assert.equal( inputListView.$("a.remove").eq(5).text().trim(), "remove name David" );
+      assert.equal( inputListView.$("a.remove").eq(6).text().trim(), "remove name Richard" );
+      assert.equal( inputListView.$("a.remove").eq(7).text().trim(), "remove name Charles" );
+      assert.equal( inputListView.$("a.remove").eq(8).text().trim(), "remove name Joseph" );
+      assert.equal( inputListView.$("a.remove").eq(9).text().trim(), "remove name Thomas" );
+
+      assert.equal( inputListView.$(".total").text().trim(), "Total count: 10" );
+
+      inputListView.$("a.remove").eq(0).trigger("click");
+      assert.equal( inputListView.collection.length, 9 );
+
+      assert.equal( inputListView.$(".total").text().trim(), "Total count: 9" );
+
+      inputListView.$("input[placeholder]").val("test add");
+      inputListView.$(".add").trigger("click");
+
+      assert.equal( inputListView.collection.last().get("name"), "Thomas" );
+
+      inputListView.$("input[placeholder]").trigger("input");
+      inputListView.$(".add").trigger("click");
+
+      assert.equal( inputListView.collection.last().get("name"), "test add" );
+      assert.equal( inputListView.collection.length, 10 );
+
+      var $input = inputListView.$("input").eq(3);
+      assert.equal( $input.val(), "William" );
+
+      $input.val("nice");
+      $input.trigger("input");
+
+      assert.equal( inputListView.collection.at(3).get("name"), "nice" );
+      assert.equal( inputListView.$("a.remove").eq(3).text().trim(), "remove name nice" );
+
+      assert.equal( inputListView.$(".total").text().trim(), "Total count: 10" );
+  });
+
+  QUnit.test("resizeView", function(assert) {
+      var ResizeView = Backbone.View.extend("ResizeView", {
+          template: "#resize-template",
+
+          ui: {
+              text: ".text"
+          },
+
+          model: {
+              text: "test text size",
+              width: 0,
+              height: 0
+          },
+
+          onRender: function() {
+              var size = this.ui.text.getBoundingClientRect();
+              this.model.set("width", size.width);
+              this.model.set("height", size.height);
+          }
+      });
+
+      var resizeView = new ResizeView();
+
+      document.body.appendChild( resizeView.el );
+      resizeView.render();
+
+      assert.notEqual( resizeView.$("div").text().replace(/\s/g, ""), "Width:0pxHeight:0px" );
+
+      resizeView.remove();
   });
 
 })(QUnit);

@@ -39,6 +39,8 @@
         this.collection = new Collection(this.collection);
     }
 
+    this.ui = {};
+
     // need for detach handlers
     this._processEvents = this._processEvents.bind(this);
     // handlers, who was called
@@ -177,14 +179,14 @@
             });
         }
 
-
         // this.ui elements
         this._bindUI();
-        // custom logic
-        this.onRender();
 
         // system flag
         this._rendered = true;
+
+        // custom logic
+        this.onRender();
 
         // for controllers
         this.trigger("render");
@@ -255,6 +257,19 @@
 
 
     _bindUI: function() {
+        this.ui = {};
+
+        for (var uikey in this._ui ) {
+            var uiSelector = this._ui[ uikey ];
+
+            if ( /^\$/.test(uikey) ) {
+                this.ui[ uikey ] = this.$( uiSelector );
+            }
+            else {
+                this.ui[ uikey ] = this.el.querySelector( uiSelector );
+            }
+        }
+
         if ( !this._templateTmpEvents ) {
             return;
         }
@@ -611,6 +626,18 @@
     View.prototype.TemplateScope = TemplateScope;
 
     View._beforeExtend = function(className, protoProps, staticProps) {
+        if ( protoProps.ui ) {
+            protoProps._ui = protoProps.ui;
+            delete protoProps.ui;
+
+            for (var uikey in protoProps._ui) {
+                if ( /^\$/.test(uikey) && !Backbone.$ ) {
+                    throw new Error("for $ui need jquery, please don't use $ in uikey");
+                }
+            }
+        }
+
+
         if ( protoProps.model ) {
             var Model = protoProps.model;
 
