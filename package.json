@@ -13,7 +13,6 @@
   ],
   "author": "Jeremy Ashkenas",
   "dependencies": {
-    "htmlparser2": "^3.9.2",
     "underscore": ">=1.8.3"
   },
   "devDependencies": {
