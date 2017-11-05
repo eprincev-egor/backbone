@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js input-bind</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js input-bind</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="input-template">
-            <input placeholder="enter your name" <%= value("name") %>/>
-            <p>Hello <%- name %></p>
-        </script>
+    <script type="text/template" id="input-template">
+        <input placeholder="enter your name" <%= value( "name") %>/>
+        <p>Hello
+            <%- name %>
+        </p>
+    </script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+        var InputView = Backbone.View.extend("InputView", {
+            template: "#input-template"
+        });
 
-            var InputView = Backbone.View.extend("InputView", {
-                template: "#input-template"
-            });
+        var inputView = new InputView();
+        document.body.appendChild(inputView.el);
+        inputView.render();
+    </script>
 
-            var inputView = new InputView();
-            document.body.appendChild( inputView.el );
-            inputView.render();
+</body>
 
-        </script>
-
-    </body>
 </html>

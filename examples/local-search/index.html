@@ -1,116 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js local-search</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js local-search</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="App-template">
-            <% SearchBar() %>
+    <script type="text/template" id="App-template">
+        <% SearchBar() %>
             <% Grid() %>
-            <% Pagination() %>
-        </script>
+                <% Pagination() %>
+    </script>
 
-        <script type="text/template" id="SearchBar-template">
-            <input placeholder="search" <%= value("text") %> />
-            <button>go</button>
-        </script>
+    <script type="text/template" id="SearchBar-template">
+        <input placeholder="search" <%= value( "text") %> />
+        <button>go</button>
+    </script>
 
-        <script type="text/template" id="Grid-template">
+    <script type="text/template" id="Grid-template">
 
-        </script>
+    </script>
 
-        <script type="text/template" id="Pagination-template">
+    <script type="text/template" id="Pagination-template">
 
-        </script>
+    </script>
 
-        <script type="text/javascript">
-            var SearchBarView = Backbone.View.extend("SearchBarView", {
-                template: "#SearchBar-template",
+    <script type="text/javascript">
+        var SearchBarView = Backbone.View.extend("SearchBarView", {
+            template: "#SearchBar-template",
 
-                model: {
-                    text: ""
-                }
-            });
+            model: {
+                text: ""
+            }
+        });
 
-            var GridView = Backbone.View.extend("GridView", {
-                template: "#Grid-template",
+        var GridView = Backbone.View.extend("GridView", {
+            template: "#Grid-template",
 
-                model: {
-                    columns: [],
-                    items: []
-                }
-            });
+            model: {
+                columns: [],
+                items: []
+            }
+        });
 
-            var PaginationView = Backbone.View.extend("PaginationView", {
-                template: "#Pagination-template",
+        var PaginationView = Backbone.View.extend("PaginationView", {
+            template: "#Pagination-template",
 
-                model: {
-                    page: 0
-                }
-            });
+            model: {
+                page: 0
+            }
+        });
 
 
-            var AppView = Backbone.View.extend("AppView", {
-                template: "#App-template",
+        var AppView = Backbone.View.extend("AppView", {
+            template: "#App-template",
 
-                Views: {
-                    SearchBar: SearchBarView,
-                    Grid: GridView,
-                    Pagination: PaginationView
-                },
+            Views: {
+                SearchBar: SearchBarView,
+                Grid: GridView,
+                Pagination: PaginationView
+            },
 
-                model: {
-                    page: 0,
-                    items: []
-                }
-            });
-
-            var appView = new AppView({
+            model: {
                 page: 0,
-                columns: [
-                    {
-                        key: "id",
-                        name: "#"
-                    },
-                    {
-                        key: "name",
-                        name: "Name"
-                    },
-                    {
-                        key: "note",
-                        name: "Note"
-                    }
-                ],
+                items: []
+            }
+        });
 
-                items: [
-                    {
-                        id: 1,
-                        name: "Row 1",
-                        note: "Note 1"
-                    },
-                    {
-                        id: 2,
-                        name: "Row 2",
-                        note: "Note 2"
-                    },
-                    {
-                        id: 3,
-                        name: "Row 3",
-                        note: "Note 3"
-                    }
-                ]
-            });
-            document.body.appendChild( appView.el );
-            appView.render();
+        var appView = new AppView({
+            page: 0,
+            columns: [{
+                    key: "id",
+                    name: "#"
+                },
+                {
+                    key: "name",
+                    name: "Name"
+                },
+                {
+                    key: "note",
+                    name: "Note"
+                }
+            ],
 
-        </script>
+            items: [{
+                    id: 1,
+                    name: "Row 1",
+                    note: "Note 1"
+                },
+                {
+                    id: 2,
+                    name: "Row 2",
+                    note: "Note 2"
+                },
+                {
+                    id: 3,
+                    name: "Row 3",
+                    note: "Note 3"
+                }
+            ]
+        });
+        document.body.appendChild(appView.el);
+        appView.render();
+    </script>
 
-    </body>
+</body>
+
 </html>

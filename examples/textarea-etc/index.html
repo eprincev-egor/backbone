@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js textarea-etc</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js textarea-etc</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="form-template">
-            <div>
-                <input type="checkbox" <%= value("checked") %> />
-                <span><%= checked ? "enabled" : "disabled" %></span>
-            </div>
+    <script type="text/template" id="form-template">
+        <div>
+            <input type="checkbox" <%= value( "checked") %> />
+            <span><%= checked ? "enabled" : "disabled" %></span>
+        </div>
 
-            <div>
-                <input placeholder="enter name" <%= value("name") %> />
-                <span><%- name %></span>
-            </div>
+        <div>
+            <input placeholder="enter name" <%= value( "name") %> />
+            <span><%- name %></span>
+        </div>
 
-            <div>
-                <textarea <%= value("text") %>></textarea>
-                <p><%- text %></p>
-            </div>
-        </script>
+        <div>
+            <textarea <%= value( "text") %>></textarea>
+            <p>
+                <%- text %>
+            </p>
+        </div>
+    </script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+        var FormView = Backbone.View.extend("FormView", {
+            template: "#form-template",
 
-            var FormView = Backbone.View.extend("FormView", {
-                template: "#form-template",
+            model: {
+                checked: true,
+                name: "test name",
+                text: "\t<big text here>"
+            }
+        });
 
-                model: {
-                    checked: true,
-                    name: "test name",
-                    text: "\t<big text here>"
-                }
-            });
+        var formView = new FormView();
+        document.body.appendChild(formView.el);
+        formView.render();
+    </script>
 
-            var formView = new FormView();
-            document.body.appendChild( formView.el );
-            formView.render();
+</body>
 
-        </script>
-
-    </body>
 </html>

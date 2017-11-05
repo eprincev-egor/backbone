@@ -1,53 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js clock</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js clock</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="clock-template">
-            <h1><%= this.format(time) %></h1>
-        </script>
+    <script type="text/template" id="clock-template">
+        <h1><%= this.format(time) %></h1>
+    </script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+        var ClockView = Backbone.View.extend("ClockView", {
+            template: "#clock-template",
 
-            var ClockView = Backbone.View.extend("ClockView", {
-                template: "#clock-template",
+            model: {
+                // default time
+                time: new Date()
+            },
 
-                model: {
-                    // default time
-                    time: new Date()
-                },
+            format: function(time) {
+                // Date object => "01:01:01"
+                return (
+                    ("0" + time.getHours()).slice(-2) + ":" +
+                    ("0" + time.getMinutes()).slice(-2) + ":" +
+                    ("0" + time.getSeconds()).slice(-2)
+                );
+            },
 
-                format: function(time) {
-                    // Date object => "01:01:01"
-                    return (
-                        ("0" + time.getHours()).slice(-2) + ":" +
-                        ("0" + time.getMinutes()).slice(-2) + ":" +
-                        ("0" + time.getSeconds()).slice(-2)
-                    );
-                },
+            initialize: function() {
+                setInterval(function() {
+                    this.model.set({
+                        time: new Date()
+                    });
+                }.bind(this), 500);
+            }
+        });
 
-                initialize: function() {
-                    setInterval(function() {
-                        this.model.set({
-                            time: new Date()
-                        });
-                    }.bind(this), 500);
-                }
-            });
+        var clockView = new ClockView();
+        document.body.appendChild(clockView.el);
+        clockView.render();
+    </script>
 
-            var clockView = new ClockView();
-            document.body.appendChild( clockView.el );
-            clockView.render();
+</body>
 
-        </script>
-
-    </body>
 </html>

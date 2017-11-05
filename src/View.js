@@ -1,24 +1,24 @@
 "use strict";
 
-    var Backbone = require("./main"),
-        Events = require("./Events"),
-        Vdom = require("./Vdom"),
-        _ = Backbone._;
+var Backbone = require("./main"),
+    Events = require("./Events"),
+    Vdom = require("./Vdom"),
+    _ = Backbone._;
 
-  // Backbone.View
-  // -------------
+// Backbone.View
+// -------------
 
-  // Backbone Views are almost more convention than they are actual code. A View
-  // is simply a JavaScript object that represents a logical chunk of UI in the
-  // DOM. This might be a single item, an entire list, a sidebar or panel, or
-  // even the surrounding frame which wraps your whole app. Defining a chunk of
-  // UI as a **View** allows you to define your DOM events declaratively, without
-  // having to worry about render order ... and makes it easy for the view to
-  // react to specific changes in the state of your models.
+// Backbone Views are almost more convention than they are actual code. A View
+// is simply a JavaScript object that represents a logical chunk of UI in the
+// DOM. This might be a single item, an entire list, a sidebar or panel, or
+// even the surrounding frame which wraps your whole app. Defining a chunk of
+// UI as a **View** allows you to define your DOM events declaratively, without
+// having to worry about render order ... and makes it easy for the view to
+// react to specific changes in the state of your models.
 
-  // Creating a Backbone.View creates its initial element outside of the DOM,
-  // if an existing element is not provided...
-  var View = function View(options) {
+// Creating a Backbone.View creates its initial element outside of the DOM,
+// if an existing element is not provided...
+var View = function View(options) {
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
     _.extend(this, _.pick(options, viewOptions));
@@ -47,49 +47,52 @@
     this._events = _.extend({}, this.events);
     this._attachedEvents = {};
 
-    if ( !options || options.createElement !== false ) {
+    if (!options || options.createElement !== false) {
         this._ensureElement();
     }
 
     this.initialize.apply(this, arguments);
-  };
+};
 
-  // Cached regex to split keys for `delegate`.
-  var delegateEventSplitter = /^(\S+)\s*(.*)$/;
+// Cached regex to split keys for `delegate`.
+var delegateEventSplitter = /^(\S+)\s*(.*)$/;
 
-    var addEventListener,
-        removeEventListener;
-    if ( Backbone.$ ) {
-        addEventListener = function(el, eventName, handler) {
-            $(el).on(eventName, handler);
-        };
-        removeEventListener = function(el, eventName, handler) {
-            $(el).off(eventName, handler);
-        };
-    } else {
-        addEventListener = function(el, eventName, handler) {
-            el.addEventListener(eventName, handler);
-        };
-        removeEventListener = function(el, eventName, handler) {
-            el.removeEventListener(eventName, handler);
-        };
-    }
-
-    var _eventKey2nameAndSelector = function(key) {
-        key = key.trim();
-        key = key.split(/\s+/);
-
-        var type = key[0],
-            selector = key.slice(1).join(" ");
-
-        return {type: type, selector: selector};
+var addEventListener,
+    removeEventListener;
+if (Backbone.$) {
+    addEventListener = function(el, eventName, handler) {
+        $(el).on(eventName, handler);
     };
+    removeEventListener = function(el, eventName, handler) {
+        $(el).off(eventName, handler);
+    };
+} else {
+    addEventListener = function(el, eventName, handler) {
+        el.addEventListener(eventName, handler);
+    };
+    removeEventListener = function(el, eventName, handler) {
+        el.removeEventListener(eventName, handler);
+    };
+}
 
-  // List of view options to be set as properties.
-  var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+var _eventKey2nameAndSelector = function(key) {
+    key = key.trim();
+    key = key.split(/\s+/);
 
-  // Set up all inheritable **Backbone.View** properties and methods.
-  _.extend(View.prototype, Events, {
+    var type = key[0],
+        selector = key.slice(1).join(" ");
+
+    return {
+        type: type,
+        selector: selector
+    };
+};
+
+// List of view options to be set as properties.
+var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+
+// Set up all inheritable **Backbone.View** properties and methods.
+_.extend(View.prototype, Events, {
 
     // The default `tagName` of a View's element is `"div"`.
     tagName: 'div',
@@ -97,7 +100,7 @@
     // jQuery delegate for element lookup, scoped to DOM elements within the
     // current view. This should be preferred to global lookups where possible.
     $: function(selector) {
-        if ( Backbone.$ ) {
+        if (Backbone.$) {
             return this.$el.find(selector);
         } else {
             return this.el.querySelector(selector);
@@ -106,24 +109,24 @@
 
     // preinitialize is an empty function by default. You can override it with a function
     // or object.  preinitialize will run before any instantiation logic is run in the View
-    preinitialize: function(){},
+    preinitialize: function() {},
 
     // Initialize is an empty function by default. Override it with your own
     // initialization logic.
-    initialize: function(){},
+    initialize: function() {},
 
     render: function() {
-      if ( !this.template ) {
+        if (!this.template) {
+            return this;
+        }
+
+        if (this._rendered) {
+            this._liveRender();
+        } else {
+            this._firstRender();
+        }
+
         return this;
-      }
-
-      if ( this._rendered ) {
-          this._liveRender();
-      } else {
-          this._firstRender();
-      }
-
-      return this;
     },
 
     onRender: function() {
@@ -140,7 +143,7 @@
         //
         // new View().render()
         //
-        if ( !this.model ) {
+        if (!this.model) {
             var Model = this.Model || Backbone.Model;
             this.model = new Model(this.model);
         }
@@ -153,21 +156,21 @@
     },
 
     _listenData: function() {
-        if ( this.model ) {
+        if (this.model) {
             this.listenTo(this.model, "change", this._onChangeModel);
         }
 
-        if ( this.collection ) {
+        if (this.collection) {
             this.listenTo(this.collection, "all", this._onChangeCollection);
         }
     },
 
     _liveRender: function() {
-        if ( !this._rendered ) {
+        if (!this._rendered) {
             return;
         }
 
-        if ( !this.vdom ) {
+        if (!this.vdom) {
             this.vdom = new Vdom();
             // only first live render
             this.vdom.build(this.el, this.templateCache);
@@ -181,13 +184,13 @@
     },
 
     afterInsertHTML: function() {
-        if ( !this.el ) {// if createElement: false
-            var el = document.querySelector( "[cid='" + this.cid + "']" );
+        if (!this.el) { // if createElement: false
+            var el = document.querySelector("[cid='" + this.cid + "']");
             this.setElement(el);
         }
 
         // bindUI in subElems
-        if ( this.children ) {
+        if (this.children) {
             this.children.forEach(function(childView) {
                 childView.afterInsertHTML();
             });
@@ -217,28 +220,28 @@
     // example:
     // <%= value( model, key ) %>
     _templateValue: function(model, key) {
-        if ( arguments.length == 1 ) {
+        if (arguments.length == 1) {
             key = model;
             model = this.model;
         }
 
         var tmpId = _.uniqueId("val");
 
-        if ( !this._templateTmpEvents ) {
+        if (!this._templateTmpEvents) {
             this._templateTmpEvents = {};
         }
         this._templateTmpEvents[tmpId] = [model, key];
 
         //return ' value="'+ _.escape( model.get(key) ) +'" __tmp-id="'+ tmpId +'" ';
-        return ' __tmp-id="'+ tmpId +'" ';
+        return ' __tmp-id="' + tmpId + '" ';
     },
 
     _templateChildView: function(print, options) {
         var className = options.type,
-            ChildView = this.Views[ className ];
+            ChildView = this.Views[className];
 
         // for Tree
-        if ( className == this.constructor.className ) {
+        if (className == this.constructor.className) {
             ChildView = this.constructor;
         }
 
@@ -246,12 +249,12 @@
         options.createElement = false;
         var childView = new ChildView(options);
 
-        if ( !this.children ) {
+        if (!this.children) {
             this.children = [];
         }
         this.children.push(childView);
 
-        print( childView._outerHTML() );
+        print(childView._outerHTML());
 
         return childView;
     },
@@ -259,8 +262,8 @@
     // called by parent
     _outerHTML: function() {
         var tagName = this.tagName,
-            open = "<"+ tagName +" cid='"+ this.cid +"'>",
-            close = "</"+ tagName +">";
+            open = "<" + tagName + " cid='" + this.cid + "'>",
+            close = "</" + tagName + ">";
 
         // need for virtual dom
         this.templateCache = this.template();
@@ -273,28 +276,27 @@
     _bindUI: function() {
         this.ui = {};
 
-        for (var uikey in this._ui ) {
-            var uiSelector = this._ui[ uikey ];
+        for (var uikey in this._ui) {
+            var uiSelector = this._ui[uikey];
 
-            if ( /^\$/.test(uikey) ) {
-                this.ui[ uikey ] = this.$( uiSelector );
-            }
-            else {
-                this.ui[ uikey ] = this.el.querySelector( uiSelector );
+            if (/^\$/.test(uikey)) {
+                this.ui[uikey] = this.$(uiSelector);
+            } else {
+                this.ui[uikey] = this.el.querySelector(uiSelector);
             }
         }
 
-        if ( !this._templateTmpEvents ) {
+        if (!this._templateTmpEvents) {
             return;
         }
 
         var inputsEls = this.el.querySelectorAll("[__tmp-id]");
         inputsEls.forEach(function(inputEl) {
             var tmpId = inputEl.getAttribute("__tmp-id"),
-                tmp = this._templateTmpEvents[ tmpId ],
+                tmp = this._templateTmpEvents[tmpId],
                 model, key, value;
 
-            if ( !tmp ) {
+            if (!tmp) {
                 return;
             }
 
@@ -302,14 +304,14 @@
             key = tmp[1];
             value = model.get(key);
 
-            if ( inputEl.type == "checkbox" ) {
-                if ( value ) {
+            if (inputEl.type == "checkbox") {
+                if (value) {
                     inputEl.checked = true;
                 } else {
                     inputEl.checked = false;
                 }
             } else {
-                if ( value != null ) {
+                if (value != null) {
                     inputEl.value = value;
                 }
             }
@@ -319,9 +321,9 @@
     // Remove this view by taking the element out of the DOM, and removing any
     // applicable Backbone.Events listeners.
     remove: function() {
-      this._removeElement();
-      this.stopListening();
-      return this;
+        this._removeElement();
+        this.stopListening();
+        return this;
     },
 
     // Remove this view's element from the document and all event listeners
@@ -329,10 +331,10 @@
     // manipulation API.
     _removeElement: function() {
         this._dettachEvents();
-        if ( Backbone.$ ) {
+        if (Backbone.$) {
             this.$el.remove();
         } else {
-            this.el.parentNode.removeChild( this.el );
+            this.el.parentNode.removeChild(this.el);
         }
     },
 
@@ -345,8 +347,8 @@
         this._dettachEvents();
         this._events = _.extend({}, this.events);
 
-        if ( Backbone.$ ) {
-            if ( el instanceof Backbone.$ ) {
+        if (Backbone.$) {
+            if (el instanceof Backbone.$) {
                 this.$el = el;
                 this.el = this.$el[0];
             } else {
@@ -360,17 +362,17 @@
 
         // add new listeners
         this._attachEvents();
-      return this;
+        return this;
     },
 
     _dettachEvents: function() {
-        if ( !this.el ) {
+        if (!this.el) {
             return;
         }
 
         for (var key in this._attachedEvents) {
             removeEventListener(this.el, key, this._processEvents);
-            delete this._attachedEvents[ key ];
+            delete this._attachedEvents[key];
         }
 
         removeEventListener(this.el, "input", this._processEvents);
@@ -378,19 +380,19 @@
     },
 
     _attachEvents: function() {
-        if ( !this.el ) {
+        if (!this.el) {
             return;
         }
 
         for (var eventSelector in this._events) {
-            var tmp = this._eventKeyWithUI2nameAndSelector( eventSelector );
+            var tmp = this._eventKeyWithUI2nameAndSelector(eventSelector);
 
-            if ( this._attachedEvents[ tmp.type ] ) {
+            if (this._attachedEvents[tmp.type]) {
                 continue;
             }
 
             addEventListener(this.el, tmp.type, this._processEvents);
-            this._attachedEvents[ tmp.type ] = true;
+            this._attachedEvents[tmp.type] = true;
         }
 
         addEventListener(this.el, "input", this._processEvents);
@@ -411,43 +413,45 @@
     // Uses event delegation for efficiency.
     // Omitting the selector binds the event to `this.el`.
     delegateEvents: function(events) {
-      if ( !events ) { events = _.result(this, 'events'); }
-      if ( !events ) return this;
-      this.undelegateEvents();
-      for (var key in events) {
-        var method = events[key];
-        if (!_.isFunction(method)) method = this[method];
-        if (!method) continue;
-        var match = key.match(delegateEventSplitter);
-        this.delegate(match[1], match[2], _.bind(method, this));
-      }
-      return this;
+        if (!events) {
+            events = _.result(this, 'events');
+        }
+        if (!events) return this;
+        this.undelegateEvents();
+        for (var key in events) {
+            var method = events[key];
+            if (!_.isFunction(method)) method = this[method];
+            if (!method) continue;
+            var match = key.match(delegateEventSplitter);
+            this.delegate(match[1], match[2], _.bind(method, this));
+        }
+        return this;
     },
 
     // Add a single event listener to the view's element (or a child element
     // using `selector`). This only works for delegate-able events: not `focus`,
     // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
     delegate: function(eventName, selector, listener) {
-        if ( !_.isString(selector) ) {
-          listener = selector;
-          selector = "";
+        if (!_.isString(selector)) {
+            listener = selector;
+            selector = "";
         }
 
-        var tmp = _eventKey2nameAndSelector( eventName + " " + selector ),
+        var tmp = _eventKey2nameAndSelector(eventName + " " + selector),
             key = (tmp.type + " " + tmp.selector).trim();
 
-        this._events[ key ] = listener;
+        this._events[key] = listener;
         this._attachEvents();
 
-      return this;
+        return this;
     },
 
     // Clears all callbacks previously bound to the view by `delegateEvents`.
     // You usually don't need to use this, but may wish to if you have multiple
     // Backbone views attached to the same DOM element.
     undelegateEvents: function() {
-      this._events = {};
-      return this;
+        this._events = {};
+        return this;
     },
 
     // A finer-grained `undelegateEvents` for removing a single delegated event.
@@ -455,25 +459,25 @@
     undelegate: function(eventName, selector, listener) {
         var tmp, key, eventSelector;
 
-        if ( selector ) {
-            tmp = _eventKey2nameAndSelector( eventName + " " + selector );
+        if (selector) {
+            tmp = _eventKey2nameAndSelector(eventName + " " + selector);
             eventSelector = tmp.type + " " + tmp.selector;
-            delete this._events[ eventSelector ];
+            delete this._events[eventSelector];
         } else {
             for (eventSelector in this._events) {
-                tmp = _eventKey2nameAndSelector( eventSelector );
+                tmp = _eventKey2nameAndSelector(eventSelector);
 
-                if ( tmp.type == eventName ) {
-                    delete this._events[ eventSelector ];
+                if (tmp.type == eventName) {
+                    delete this._events[eventSelector];
                 }
             }
         }
 
-      return this;
+        return this;
     },
 
     _processEvents: function(e) {
-        if ( !this.el ) {
+        if (!this.el) {
             return;
         }
 
@@ -481,30 +485,29 @@
         // <%= value %>
         // <%= checked %>
         var tmpId = e.target.getAttribute && e.target.getAttribute("__tmp-id"),
-            tmp = this._templateTmpEvents && this._templateTmpEvents[ tmpId ];
+            tmp = this._templateTmpEvents && this._templateTmpEvents[tmpId];
 
-        if ( tmp && (e.type == "input" || e.type == "change") ) {
+        if (tmp && (e.type == "input" || e.type == "change")) {
             var model = tmp[0],
                 key = tmp[1];
 
-            if (  e.target.type == "checkbox" ) {
-                model.set( key, !!e.target.checked );
-            }
-            else {
-                model.set( key, e.target.value );
+            if (e.target.type == "checkbox") {
+                model.set(key, !!e.target.checked);
+            } else {
+                model.set(key, e.target.value);
             }
         }
         // ===============
 
-        if ( !this._events ) {
+        if (!this._events) {
             return;
         }
 
         for (var eventSelector in this._events) {
-            var method = this._events[ eventSelector ];
-            method = this[ method ] || method;
+            var method = this._events[eventSelector];
+            method = this[method] || method;
 
-            if ( !_.isFunction(method) ) {
+            if (!_.isFunction(method)) {
                 continue;
             }
 
@@ -517,17 +520,17 @@
             type = tmp.type,
             selector = tmp.selector;
 
-        if ( type != e.type ) {
+        if (type != e.type) {
             return;
         }
 
         // "click": "onClick"
-        if ( selector === "" && e.target === this.el ) {
+        if (selector === "" && e.target === this.el) {
             return method.call(this, e);
         }
 
         // "click .btn": "onClickBtn"
-        if ( this.el.contains( e.target ) ) {
+        if (this.el.contains(e.target)) {
             return method.call(this, e);
         }
     },
@@ -535,14 +538,14 @@
     _eventKeyWithUI2nameAndSelector: function(key) {
         var tmp = _eventKey2nameAndSelector(key);
 
-        if ( !this._ui ) {
+        if (!this._ui) {
             return tmp;
         }
 
         var ui = this._ui;
 
         tmp.selector = tmp.selector.replace(/@ui\s*\.\s*([$\w]+)/, function(str, uiKey) {
-            return ui[ uiKey ];
+            return ui[uiKey];
         });
 
         return tmp;
@@ -552,7 +555,7 @@
     // Produces a DOM element to be assigned to your view. Exposed for
     // subclasses using an alternative DOM manipulation API.
     _createElement: function(tagName) {
-      return document.createElement(tagName);
+        return document.createElement(tagName);
     },
 
     // Ensure that the View has a DOM element to render into.
@@ -560,21 +563,21 @@
     // matching element, and re-assign it to `el`. Otherwise, create
     // an element from the `id`, `className` and `tagName` properties.
     _ensureElement: function() {
-      if (!this.el) {
-        var attrs = _.extend({}, _.result(this, 'attributes'));
-        if (this.id) attrs.id = _.result(this, 'id');
-        if (this.className) attrs['class'] = _.result(this, 'className');
-        this.setElement(this._createElement(_.result(this, 'tagName')));
-        this._setAttributes(attrs);
-      } else {
-        this.setElement(_.result(this, 'el'));
-      }
+        if (!this.el) {
+            var attrs = _.extend({}, _.result(this, 'attributes'));
+            if (this.id) attrs.id = _.result(this, 'id');
+            if (this.className) attrs['class'] = _.result(this, 'className');
+            this.setElement(this._createElement(_.result(this, 'tagName')));
+            this._setAttributes(attrs);
+        } else {
+            this.setElement(_.result(this, 'el'));
+        }
     },
 
     // Set attributes from a hash on this view's element.  Exposed for
     // subclasses using an alternative DOM manipulation API.
     _setAttributes: function(attributes) {
-        if ( this.$el ) {
+        if (this.$el) {
             this.$el.attr(attributes);
         } else {
             for (var key in attributes) {
@@ -583,140 +586,140 @@
         }
     }
 
-  });
+});
 
-    var TemplateScope = function TemplateScope(view, print) {
-        this.view = view;
-        this.print = print;
-    };
+var TemplateScope = function TemplateScope(view, print) {
+    this.view = view;
+    this.print = print;
+};
 
-    _.extend(TemplateScope.prototype, {
-        View: function(options) {
-            return this.view._templateChildView(this.print, options);
-        },
+_.extend(TemplateScope.prototype, {
+    View: function(options) {
+        return this.view._templateChildView(this.print, options);
+    },
 
-        // lazy helpers::
+    // lazy helpers::
 
 
-        // <%= value( state, key ) %>
-        //
-        // set events for listening:
-        // <%= value( state, key ).on("change blur") %>
-        value: function(model, key) {
-            return this.view._templateValue.apply(this.view, arguments);
+    // <%= value( state, key ) %>
+    //
+    // set events for listening:
+    // <%= value( state, key ).on("change blur") %>
+    value: function(model, key) {
+        return this.view._templateValue.apply(this.view, arguments);
+    }
+});
+
+View.TemplateScope = TemplateScope;
+
+View.prototype.TemplateScope = TemplateScope;
+
+View._beforeExtend = function(className, protoProps, staticProps) {
+    if (protoProps.ui) {
+        protoProps._ui = protoProps.ui;
+        delete protoProps.ui;
+
+        for (var uikey in protoProps._ui) {
+            if (/^\$/.test(uikey) && !Backbone.$) {
+                throw new Error("for $ui need jquery, please don't use $ in uikey");
+            }
         }
+    }
+
+
+    if (protoProps.model) {
+        var Model = protoProps.model;
+
+        if (
+            _.isObject(Model) &&
+            !(Model instanceof Backbone.Model)
+        ) {
+            Model = Backbone.Model.extend(className + "Model", {
+                defaults: Model
+            });
+        }
+
+        protoProps.Model = Model;
+        delete protoProps.model;
+    }
+
+    // make template
+    if (_.isObject(protoProps) && _.isString(protoProps.template)) {
+        var templateString = protoProps.template; // for debug
+
+        try {
+            // if templateString is not valid selector,
+            // then querySelector throw error
+            var templateEl = document.querySelector(templateString);
+            if (templateEl) {
+                templateString = templateEl.innerHTML;
+            }
+        } catch (err) {}
+
+        // это позволяет использовать элементы внутри элементов
+        templateString = (
+            "<%" +
+            " scope = new this.TemplateScope(this, print);" +
+            " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}; " +
+            "with(_modelAttribures) {with(scope) { %>" +
+            templateString +
+            "<% } } %>"
+        );
+        protoProps.template = _.template(templateString, {
+            variable: "scope"
+        });
+    }
+};
+
+View._afterExtend = function(child) {
+    var proto = child.prototype;
+
+    // потомки наследуют scope родителей
+    proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");
+
+    // proto.Views = [ChildView1, ChildView2, ...]
+    // convert to
+    // Views.ChildView1 = ChildView1
+    // Views.ChildView2 = ChildView2
+    // ...
+    var Views = {};
+    Views[child.className] = child; // for Tree
+
+    if (_.isArray(proto.Views)) {
+        _.each(proto.Views, function(ChildView) {
+            Views[ChildView.className] = ChildView;
+        });
+    }
+    // proto.Views = { menu: SomeMenuView }
+    else if (_.isObject(proto.Views)) {
+        _.extend(Views, proto.Views);
+    }
+
+    proto.Views = Views;
+
+    // дочерние классы, которые будут использоваться в шаблонах
+    _.each(Views, function(value, key) {
+        proto.TemplateScope.prototype[key] = function(options) {
+            if (!options) {
+                options = {};
+            }
+            var scope = this;
+            options.type = key;
+            return scope.View(options);
+        };
     });
 
-    View.TemplateScope = TemplateScope;
+    // наследование стилей
+    proto.extendedClassName = "";
+    if (child.Parent) {
+        var classes = (child.__super__.extendedClassName + " " + child.className).trim();
+        classes = classes.split(/\s+/g);
+        classes = _.uniq(classes);
+        classes = classes.join(" ");
+        proto.extendedClassName = classes;
+    }
 
-    View.prototype.TemplateScope = TemplateScope;
-
-    View._beforeExtend = function(className, protoProps, staticProps) {
-        if ( protoProps.ui ) {
-            protoProps._ui = protoProps.ui;
-            delete protoProps.ui;
-
-            for (var uikey in protoProps._ui) {
-                if ( /^\$/.test(uikey) && !Backbone.$ ) {
-                    throw new Error("for $ui need jquery, please don't use $ in uikey");
-                }
-            }
-        }
-
-
-        if ( protoProps.model ) {
-            var Model = protoProps.model;
-
-            if (
-                _.isObject(Model) &&
-                !(Model instanceof Backbone.Model)
-            ) {
-                Model = Backbone.Model.extend(className + "Model", {
-                    defaults: Model
-                });
-            }
-
-            protoProps.Model = Model;
-            delete protoProps.model;
-        }
-
-        // make template
-        if ( _.isObject(protoProps) && _.isString(protoProps.template) ) {
-            var templateString = protoProps.template; // for debug
-
-            try {
-                // if templateString is not valid selector,
-                // then querySelector throw error
-                var templateEl = document.querySelector( templateString );
-                if ( templateEl ) {
-                    templateString = templateEl.innerHTML;
-                }
-            } catch(err) {}
-
-            // это позволяет использовать элементы внутри элементов
-            templateString = (
-                "<%"+
-                " scope = new this.TemplateScope(this, print);"+
-                " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}; "+
-                "with(_modelAttribures) {with(scope) { %>" +
-                    templateString +
-                "<% } } %>"
-            );
-            protoProps.template = _.template(templateString, {
-                variable: "scope"
-            });
-        }
-    };
-
-    View._afterExtend = function(child) {
-        var proto = child.prototype;
-
-        // потомки наследуют scope родителей
-        proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");
-
-        // proto.Views = [ChildView1, ChildView2, ...]
-        // convert to
-        // Views.ChildView1 = ChildView1
-        // Views.ChildView2 = ChildView2
-        // ...
-        var Views = {};
-        Views[ child.className ] = child; // for Tree
-
-        if ( _.isArray(proto.Views) ) {
-            _.each(proto.Views, function(ChildView) {
-                Views[ ChildView.className ] = ChildView;
-            });
-        }
-        // proto.Views = { menu: SomeMenuView }
-        else if ( _.isObject(proto.Views) ) {
-            _.extend(Views, proto.Views);
-        }
-
-        proto.Views = Views;
-
-        // дочерние классы, которые будут использоваться в шаблонах
-        _.each(Views, function(value, key) {
-            proto.TemplateScope.prototype[ key ] = function(options) {
-                if ( !options ) {
-                    options = {};
-                }
-                var scope = this;
-                options.type = key;
-                return scope.View(options);
-            };
-        });
-
-        // наследование стилей
-        proto.extendedClassName = "";
-        if ( child.Parent ) {
-            var classes = (child.__super__.extendedClassName + " " + child.className).trim();
-            classes = classes.split(/\s+/g);
-            classes = _.uniq( classes );
-            classes = classes.join(" ");
-            proto.extendedClassName = classes;
-        }
-
-    };
+};
 
 
 module.exports = View;

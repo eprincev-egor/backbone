@@ -4,19 +4,18 @@
     QUnit.module('HTMLParser');
 
     function checkAttrs(attrs, mustBe) {
-        if ( attrs.length != mustBe.length) {
+        if (attrs.length != mustBe.length) {
             return false;
-        }
-        else {
+        } else {
             for (var i = 0, n = attrs.length; i < n; i++) {
                 var attr = attrs[i],
                     mustBeAttr = mustBe[i];
 
-                if ( attr.name != mustBeAttr.name ) {
+                if (attr.name != mustBeAttr.name) {
                     return false;
                 }
 
-                if ( attr.value != mustBeAttr.value ) {
+                if (attr.value != mustBeAttr.value) {
                     return false;
                 }
             }
@@ -26,7 +25,7 @@
     }
 
     function checkNodes(nodes, mustBe) {
-        if ( nodes.length != mustBe.length) {
+        if (nodes.length != mustBe.length) {
             return false;
         }
 
@@ -34,19 +33,17 @@
             var node = nodes[i],
                 mustBeNode = mustBe[i];
 
-            if ( mustBeNode.nodeName != mustBeNode.nodeName ) {
+            if (mustBeNode.nodeName != mustBeNode.nodeName) {
                 return false;
             }
 
-            if ( node.nodeName == "#text" ) {
-                if ( node.value != mustBeNode.value ) {
+            if (node.nodeName == "#text") {
+                if (node.value != mustBeNode.value) {
                     return false;
                 }
-            }
-            else if ( !checkAttrs(node.attrs, mustBeNode.attrs) ) {
+            } else if (!checkAttrs(node.attrs, mustBeNode.attrs)) {
                 return false;
-            }
-            else if ( !checkNodes(node.childNodes, mustBeNode.childNodes) ) {
+            } else if (!checkNodes(node.childNodes, mustBeNode.childNodes)) {
                 return false;
             }
         }
@@ -62,25 +59,23 @@
 
         try {
             attrs = new Backbone.HTMLParser(html).parseAttrs();
-        } catch(err) {
+        } catch (err) {
             isError = true;
         }
 
-        if ( needError ) {
+        if (needError) {
             text = "need error in html: " + html;
         }
 
-        if ( needError && !isError ) {
+        if (needError && !isError) {
             isOk = false;
-        }
-        else if ( isError ) {
+        } else if (isError) {
             isOk = !!needError;
-        }
-        else {
-            isOk = checkAttrs( attrs, mustBe );
+        } else {
+            isOk = checkAttrs(attrs, mustBe);
         }
 
-        assert.ok( isOk, text );
+        assert.ok(isOk, text);
     }
 
     function testHTML(assert, html, mustBe, needError) {
@@ -91,25 +86,23 @@
 
         try {
             nodes = new Backbone.HTMLParser(html).parse();
-        } catch(err) {
+        } catch (err) {
             isError = true;
         }
 
-        if ( needError ) {
+        if (needError) {
             text = "need error in html: " + html;
         }
 
-        if ( needError && !isError ) {
+        if (needError && !isError) {
             isOk = false;
-        }
-        else if ( isError ) {
+        } else if (isError) {
             isOk = !!needError;
-        }
-        else {
-            isOk = checkNodes( nodes, mustBe );
+        } else {
+            isOk = checkNodes(nodes, mustBe);
         }
 
-        assert.ok( isOk, text );
+        assert.ok(isOk, text);
     }
 
     QUnit.test('parse attrs', function(assert) {
@@ -148,11 +141,25 @@
 
         testAttrs(assert, '', []);
         testAttrs(assert, '   ', []);
-        testAttrs(assert, ' \u0010  ', [{name: "\u0010"}]);
-        testAttrs(assert, ' \u0010=1  ', [{name: "\u0010", value: 1}]);
-        testAttrs(assert, ' \u0010 =1  ', [{name: "\u0010", value: 1}]);
-        testAttrs(assert, ' \u0010 = 1  ', [{name: "\u0010", value: 1}]);
-        testAttrs(assert, ' \u0010 = "1"  ', [{name: "\u0010", value: 1}]);
+        testAttrs(assert, ' \u0010  ', [{
+            name: "\u0010"
+        }]);
+        testAttrs(assert, ' \u0010=1  ', [{
+            name: "\u0010",
+            value: 1
+        }]);
+        testAttrs(assert, ' \u0010 =1  ', [{
+            name: "\u0010",
+            value: 1
+        }]);
+        testAttrs(assert, ' \u0010 = 1  ', [{
+            name: "\u0010",
+            value: 1
+        }]);
+        testAttrs(assert, ' \u0010 = "1"  ', [{
+            name: "\u0010",
+            value: 1
+        }]);
 
         testAttrs(assert, 'x=1/> a=2', [{
             name: "x",
@@ -178,95 +185,72 @@
 
     QUnit.test("parseFragment", function(assert) {
 
-        testHTML(assert, "<input/>", [
-            {
-                nodeName: "input",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
-        testHTML(assert, "<input></input>", [
-            {
-                nodeName: "input",
-                attrs: [],
-                childNodes: []
-            }
-        ], true);
+        testHTML(assert, "<input/>", [{
+            nodeName: "input",
+            attrs: [],
+            childNodes: []
+        }]);
+        testHTML(assert, "<input></input>", [{
+            nodeName: "input",
+            attrs: [],
+            childNodes: []
+        }], true);
 
-        testHTML(assert, "<textarea></textarea>", [
-            {
-                nodeName: "textarea",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<textarea></textarea>", [{
+            nodeName: "textarea",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<textarea/>", [
-            {
-                nodeName: "textarea",
-                attrs: [],
-                childNodes: []
-            }
-        ], true);
+        testHTML(assert, "<textarea/>", [{
+            nodeName: "textarea",
+            attrs: [],
+            childNodes: []
+        }], true);
 
-        testHTML(assert, "<div></div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<div></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<Div></div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<Div></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<DIV></div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<DIV></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<div ></div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<div ></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "< div></div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "< div></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<div>< /div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<div>< /div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<div></ div>", [
-            {
-                nodeName: "div",
-                attrs: [],
-                childNodes: []
-            }
-        ]);
+        testHTML(assert, "<div></ div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: []
+        }]);
 
-        testHTML(assert, "<div></div><div></div>", [
-            {
+        testHTML(assert, "<div></div><div></div>", [{
                 nodeName: "div",
                 attrs: [],
                 childNodes: []
@@ -278,33 +262,27 @@
             }
         ]);
 
-        testHTML(assert, "<div><div></div></div>", [
-            {
+        testHTML(assert, "<div><div></div></div>", [{
+            nodeName: "div",
+            attrs: [],
+            childNodes: [{
                 nodeName: "div",
                 attrs: [],
-                childNodes: [{
-                    nodeName: "div",
-                    attrs: [],
-                    childNodes: []
-                }]
-            }
-        ]);
+                childNodes: []
+            }]
+        }]);
 
-        testHTML(assert, `<input  __tmp-id="val13" /><a href="javascript:void 0" class="remove" data-index="0"></a>`, [
-            {
+        testHTML(assert, `<input  __tmp-id="val13" /><a href="javascript:void 0" class="remove" data-index="0"></a>`, [{
                 nodeName: "input",
-                attrs: [
-                    {
-                        "name": "__tmp-id",
-                        "value": "val13"
-                    }
-                ],
+                attrs: [{
+                    "name": "__tmp-id",
+                    "value": "val13"
+                }],
                 childNodes: []
             },
             {
                 nodeName: "a",
-                attrs: [
-                    {
+                attrs: [{
                         name: "href",
                         value: "javascript:void 0" // jshint ignore: line
                     },
@@ -321,21 +299,17 @@
             }
         ]);
 
-        testHTML(assert, `  <h1>List of most popular given names in USA</h1>  <div>  <input  __tmp-id="val13" />  <a href="javascript:void 0" class="remove" data-index="0">  remove name James  </a>  </div>  <div>  <input placeholder="enter name"  __tmp-id="val23" />  <button class="add">add item</button>  </div><div>Total count: 10</div>`,
-        [
-            {
+        testHTML(assert, `  <h1>List of most popular given names in USA</h1>  <div>  <input  __tmp-id="val13" />  <a href="javascript:void 0" class="remove" data-index="0">  remove name James  </a>  </div>  <div>  <input placeholder="enter name"  __tmp-id="val23" />  <button class="add">add item</button>  </div><div>Total count: 10</div>`, [{
                 nodeName: "#text",
                 value: `  `
-            }       ,
+            },
             {
                 nodeName: "h1",
                 attrs: [],
-                childNodes: [
-                    {
-                        nodeName: "#text",
-                        value: "List of most popular given names in USA"
-                    }
-                ]
+                childNodes: [{
+                    nodeName: "#text",
+                    value: "List of most popular given names in USA"
+                }]
             },
             {
                 nodeName: "#text",
@@ -344,19 +318,16 @@
             {
                 nodeName: "div",
                 attrs: [],
-                childNodes: [
-                    {
+                childNodes: [{
                         nodeName: "#text",
                         value: `  `
                     },
                     {
                         nodeName: "input",
-                        attrs: [
-                            {
-                                name: "__tmp-id",
-                                value: "val13"
-                            }
-                        ],
+                        attrs: [{
+                            name: "__tmp-id",
+                            value: "val13"
+                        }],
                         childNodes: []
                     },
                     {
@@ -365,8 +336,7 @@
                     },
                     {
                         nodeName: "a",
-                        attrs: [
-                            {
+                        attrs: [{
                                 name: "href",
                                 value: "javascript:void 0" // jshint ignore: line
                             },
@@ -379,12 +349,10 @@
                                 value: "0"
                             }
                         ],
-                        childNodes: [
-                            {
-                                nodeName: "#text",
-                                value: `  remove name James  `
-                            }
-                        ]
+                        childNodes: [{
+                            nodeName: "#text",
+                            value: `  remove name James  `
+                        }]
                     },
                     {
                         nodeName: "#text",
@@ -399,15 +367,13 @@
             {
                 nodeName: "div",
                 attrs: [],
-                childNodes: [
-                    {
+                childNodes: [{
                         nodeName: "#text",
                         value: "  "
                     },
                     {
                         nodeName: "input",
-                        attrs: [
-                            {
+                        attrs: [{
                                 name: "placeholder",
                                 value: "enter name"
                             },
@@ -424,18 +390,14 @@
                     },
                     {
                         nodeName: "button",
-                        attrs: [
-                            {
-                                name: "class",
-                                value: "add"
-                            }
-                        ],
-                        childNodes: [
-                            {
-                                nodeName: "#text",
-                                value: "add item"
-                            }
-                        ]
+                        attrs: [{
+                            name: "class",
+                            value: "add"
+                        }],
+                        childNodes: [{
+                            nodeName: "#text",
+                            value: "add item"
+                        }]
                     },
                     {
                         nodeName: "#text",

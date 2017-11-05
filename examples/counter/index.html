@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js counter</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js counter</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+        var CounterView = Backbone.View.extend("CounterView", {
+            template: "<button>click #<%- count %></button>",
 
-            var CounterView = Backbone.View.extend("CounterView", {
-                template: "<button>click #<%- count %></button>",
+            model: {
+                count: 0
+            },
 
-                model: {
-                    count: 0
-                },
-
-                events: {
-                    "click button": function() {
-                        this.model.set("count", this.model.get("count") + 1);
-                    }
+            events: {
+                "click button": function() {
+                    this.model.set("count", this.model.get("count") + 1);
                 }
-            });
+            }
+        });
 
-            var counterView = new CounterView();
-            document.body.appendChild( counterView.el );
-            counterView.render();
+        var counterView = new CounterView();
+        document.body.appendChild(counterView.el);
+        counterView.render();
+    </script>
 
-        </script>
+</body>
 
-    </body>
 </html>

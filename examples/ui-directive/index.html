@@ -1,53 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-            <title>Backbone.js resize</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js resize</title>
+</head>
 
-    <body>
+<body>
 
-        <script src="../../vendor/jquery.js"></script>
-        <script src="../../vendor/underscore.js"></script>
-        <script src="../../dist/backbone.js"></script>
+    <script src="../../vendor/jquery.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="resize-template">
-            <pre class="text" style="display: inline; font-size: 14px; font-family: Arial; line-height: 14px; padding: 0;"><%- text %></pre>
-            <div>
-                Width: <%= width %>px  <br/>
-                Height: <%= height %>px
-            </div>
-        </script>
+    <script type="text/template" id="resize-template">
+        <pre class="text" style="display: inline; font-size: 14px; font-family: Arial; line-height: 14px; padding: 0;"><%- text %></pre>
+        <div>
+            Width:
+            <%= width %>px <br/> Height:
+                <%= height %>px
+        </div>
+    </script>
 
-        <script type="text/javascript">
+    <script type="text/javascript">
+        var ResizeView = Backbone.View.extend("ResizeView", {
+            template: "#resize-template",
 
-            var ResizeView = Backbone.View.extend("ResizeView", {
-                template: "#resize-template",
+            ui: {
+                text: ".text"
+            },
 
-                ui: {
-                    text: ".text"
-                },
+            model: {
+                text: "test text size",
+                width: 0,
+                height: 0
+            },
 
-                model: {
-                    text: "test text size",
-                    width: 0,
-                    height: 0
-                },
+            onRender: function() {
+                var size = this.ui.text.getBoundingClientRect();
+                //this.model.set("width", size.width);
+                //this.model.set("height", size.height);
+            }
+        });
 
-                onRender: function() {
-                    var size = this.ui.text.getBoundingClientRect();
-                    //this.model.set("width", size.width);
-                    //this.model.set("height", size.height);
-                }
-            });
+        var resizeView = new ResizeView();
 
-            var resizeView = new ResizeView();
+        document.body.appendChild(resizeView.el);
+        resizeView.render();
+    </script>
 
-            document.body.appendChild( resizeView.el );
-            resizeView.render();
+</body>
 
-        </script>
-
-    </body>
 </html>
