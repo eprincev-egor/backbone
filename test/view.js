@@ -594,18 +594,20 @@
         template: "<input <%= value('name') %>/><span><%- name %></span>"
     });
 
-    var view = new View({
+    var view, $input, $span;
+
+    view = new View({
         model: new Backbone.Model({
             name: "<bob>"
         })
     });
     view.render();
 
-    var $input = view.$("input");
+    $input = view.$("input");
     assert.ok( !!$input.length );
     assert.ok( $input.val() == "<bob>" );
 
-    var $span = view.$("span");
+    $span = view.$("span");
     assert.ok( !!$span.length );
     assert.ok( $span.text() == "<bob>" );
 
@@ -617,6 +619,17 @@
 
     assert.ok( !!$span.length );
     assert.ok( $span.text() == "not <bob>" );
+
+    view = new View();
+    view.render();
+
+    $input = view.$("input");
+    assert.ok( !!$input.length );
+    assert.ok( $input.val() === "" );
+
+    $span = view.$("span");
+    assert.ok( !!$span.length );
+    assert.ok( $span.text() === "" );
   });
 
   QUnit.test("treeView", function(assert) {
@@ -797,6 +810,45 @@
       assert.notEqual( resizeView.$("div").text().replace(/\s/g, ""), "Width:0pxHeight:0px" );
 
       resizeView.remove();
+  });
+
+  QUnit.test("child view elems events not propagation", function(assert) {
+      var counter1 = 0,
+          counter2 = 0;
+
+      var ChildView = Backbone.View.extend("ChildView", {
+          template: "<button></button>",
+          events: {
+              "click button": function() {
+                  counter1++;
+              }
+          }
+      });
+
+      var ParentView = Backbone.View.extend("ParentView", {
+          template: "<button></button><% ChildView() %>",
+          Views: [ChildView],
+
+          events: {
+              "click button": function() {
+                  counter2++;
+              }
+          }
+      });
+
+      var parentView = new ParentView();
+      parentView.render();
+
+      parentView.$("button").eq(1).trigger("click");
+
+      assert.equal( counter1, 1 );
+      assert.equal( counter2, 0 );
+
+      parentView.$("button").eq(0).trigger("click");
+
+      assert.equal( counter1, 1 );
+      assert.equal( counter2, 1 );
+
   });
 
 })(QUnit);

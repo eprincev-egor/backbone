@@ -132,6 +132,20 @@
     },
 
     _firstRender: function() {
+        //
+        // View without model in options or proto
+        // var View = Backbone.View.extend({
+        //   template: "<input <%= value('name') %>><%- name %>"
+        // })
+        //
+        // new View().render()
+        //
+        if ( !this.model ) {
+            var Model = this.Model || Backbone.Model;
+            this.model = new Model(this.model);
+        }
+
+
         this.templateCache = this.template();
         this.el.innerHTML = this.templateCache;
         this._listenData();
@@ -463,11 +477,6 @@
             return;
         }
 
-        // event in childView
-        if ( e._processCid && e._processCid !== this.cid ) {
-            return;
-        }
-
         // ===============
         // <%= value %>
         // <%= checked %>
@@ -499,11 +508,7 @@
                 continue;
             }
 
-            var result = this._processEvent(e, eventSelector, method);
-            if ( result === true ) {
-                // stop propagation
-                e._processCid = this.cid;
-            }
+            this._processEvent(e, eventSelector, method);
         }
     },
 
@@ -518,31 +523,12 @@
 
         // "click": "onClick"
         if ( selector === "" && e.target === this.el ) {
-            method.call(this, e);
-            return true;
+            return method.call(this, e);
         }
 
-        var elements;
-        if ( selector === "" ) {
-            elements = [this.el];
-        } else {
-            elements = this.el.querySelectorAll( selector );
-        }
-
-        if ( !elements || !elements.length ) {
-            return;
-        }
-
-        // events: "click .btn": "onClickBtn"
-        // html: <div class='btn'> <span>here</span> </div>
-        // target: span
-        var element = e.target;
-        while (element) {
-            if ( _.contains(elements, element) ) {
-                method.call(this, e);
-                return true;
-            }
-            element = element.parentElement;
+        // "click .btn": "onClickBtn"
+        if ( this.el.contains( e.target ) ) {
+            return method.call(this, e);
         }
     },
 

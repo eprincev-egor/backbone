@@ -2,17 +2,15 @@
 
     var Backbone = require("./main"),
         Events = require("./Events"),
+        HTMLParser = require("./HTMLParser"),
         _ = Backbone._;
-
-    require("../vendor/parse5");
-    var htmlParser = new window.Parser();
 
     var Vdom = function Vdom() {};
 
     _.extend(Vdom.prototype, {
         // call for first build
         build: function(domNode, html) {
-            this.vnode = htmlParser.parseFragment( html );
+            this.vnode = HTMLParser.parseFragment( html );
             this.setDomNode(this.vnode, domNode);
         },
 
@@ -31,7 +29,7 @@
         // call for live render
         update: function(domNode, newHtml) {
             var oldNode = this.vnode;
-            var newNode = htmlParser.parseFragment( newHtml );
+            var newNode = HTMLParser.parseFragment( newHtml );
 
             this.updateChildren(domNode, oldNode.childNodes, newNode.childNodes);
             this.vnode = newNode;
@@ -46,7 +44,7 @@
             var updated = false;
             if ( vnode.nodeName === '#text' ) {
                 if (vnode.value != previous.value) {
-                    domNode.textContent = vnode.value;
+                    domNode.textContent = _.unescape( vnode.value );
                     vnode.domNode = domNode;
                     textUpdated = true;
                     return textUpdated;
@@ -129,14 +127,14 @@
            var domNode, i, c, start = 0, type, found;
            var doc = parentNode.ownerDocument;
            if (vnode.nodeName === '#text') {
-               domNode = vnode.domNode = doc.createTextNode(vnode.value);
+               domNode = vnode.domNode = doc.createTextNode( _.unescape(vnode.value) );
                if (insertBefore !== undefined) {
                    parentNode.insertBefore(domNode, insertBefore);
                } else {
                    parentNode.appendChild(domNode);
                }
            } else {
-               domNode = vnode.domNode = vnode.domNode || doc.createElement( vnode.tagName );
+               domNode = vnode.domNode = vnode.domNode || doc.createElement( vnode.nodeName );
 
                if (insertBefore !== undefined) {
                    parentNode.insertBefore(domNode, insertBefore);
