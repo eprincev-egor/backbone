@@ -51,7 +51,7 @@
 
     <script type="text/template" id="item-template">
         <div class="view">
-            <input class="toggle" type="checkbox" <%=d one ? 'checked="checked"' : '' %> />
+            <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
             <label><%- title %></label>
             <a class="destroy"></a>
         </div>

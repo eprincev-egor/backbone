@@ -183,17 +183,17 @@ _.extend(View.prototype, Events, {
         this.afterInsertHTML();
     },
 
-    afterInsertHTML: function() {
+    afterInsertHTML: function(parentEl) {
         if (!this.el) { // if createElement: false
-            var el = document.querySelector("[cid='" + this.cid + "']");
+            var el = (parentEl || document).querySelector("[cid='" + this.cid + "']");
             this.setElement(el);
         }
 
         // bindUI in subElems
         if (this.children) {
             this.children.forEach(function(childView) {
-                childView.afterInsertHTML();
-            });
+                childView.afterInsertHTML(this.el);
+            }, this);
         }
 
         // this.ui elements
@@ -511,6 +511,13 @@ _.extend(View.prototype, Events, {
                 continue;
             }
 
+            // that event processed in child view
+            if ( e._processedElement ) {
+                if ( e._processedElement != this.el ) {
+                    return;
+                }
+            }
+
             this._processEvent(e, eventSelector, method);
         }
     },
@@ -524,14 +531,30 @@ _.extend(View.prototype, Events, {
             return;
         }
 
-        // "click": "onClick"
-        if (selector === "" && e.target === this.el) {
-            return method.call(this, e);
+        var elements,
+            element;
+
+        if ( selector === "" ) {
+            elements = [this.el];
+        } else {
+            elements = [].slice.call(this.el.querySelectorAll(selector));
         }
 
-        // "click .btn": "onClickBtn"
-        if (this.el.contains(e.target)) {
-            return method.call(this, e);
+        if ( !elements.length ) {
+            return;
+        }
+
+        for (var i=0, n=elements.length; i<n; i++) {
+            element = elements[ i ];
+            if ( element == e.target || element.contains(e.target) ) {
+
+                // stop propagation to parent views
+                if ( !e._processedElement ) {
+                    e._processedElement = this.el;
+                }
+
+                return method.call(this, e);
+            }
         }
     },
 
@@ -626,7 +649,7 @@ View._beforeExtend = function(className, protoProps, staticProps) {
         }
     }
 
-
+    var parent = this;
     if (protoProps.model) {
         var Model = protoProps.model;
 
@@ -634,8 +657,12 @@ View._beforeExtend = function(className, protoProps, staticProps) {
             _.isObject(Model) &&
             !(Model instanceof Backbone.Model)
         ) {
-            Model = Backbone.Model.extend(className + "Model", {
-                defaults: Model
+            var ParentModel = Backbone.Model;
+            if ( parent.prototype.Model ) {
+                ParentModel = parent.prototype.Model;
+            }
+            Model = ParentModel.extend(className + "Model", {
+                defaults: _.extend({}, ParentModel.prototype.defaults || {}, Model)
             });
         }
 
@@ -673,6 +700,7 @@ View._beforeExtend = function(className, protoProps, staticProps) {
 
 View._afterExtend = function(child) {
     var proto = child.prototype;
+    var parent = this;
 
     // потомки наследуют scope родителей
     proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");
@@ -708,17 +736,6 @@ View._afterExtend = function(child) {
             return scope.View(options);
         };
     });
-
-    // наследование стилей
-    proto.extendedClassName = "";
-    if (child.Parent) {
-        var classes = (child.__super__.extendedClassName + " " + child.className).trim();
-        classes = classes.split(/\s+/g);
-        classes = _.uniq(classes);
-        classes = classes.join(" ");
-        proto.extendedClassName = classes;
-    }
-
 };
 
 

@@ -181,7 +181,7 @@ var extend = function(className, protoProps, staticProps) {
     if (!_.isString(className)) {
         staticProps = protoProps;
         protoProps = className;
-        className = "Child";
+        className = "Child" + _.uniqueId();
     }
     if (!/^[a-z]\w*$/i.test(className, "")) {
         throw new Error("invalid className: '" + className + "'\n className must be are word");

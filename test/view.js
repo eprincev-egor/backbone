@@ -1022,6 +1022,82 @@
 
     });
 
+    QUnit.test("sub elem", function(assert) {
+        var ChildView = Backbone.View.extend({
+            template: "<input <%= value('name') %>/>",
+            ui: {
+                input: "input"
+            },
+            model: {
+                name: "nice"
+            }
+        });
+        var ParentView = Backbone.View.extend({
+            template: "<% this.child = Child() %>",
+            Views: {
+                Child: ChildView
+            }
+        });
+
+        var parentView = new ParentView();
+        parentView.render();
+
+        assert.equal( parentView.child.ui.input.value, "nice" );
+    });
+
+    QUnit.test("{events: '.some'}, check event.target on right selector", function(assert) {
+        var counter1 = 0,
+            counter2 = 0,
+            counter3 = 0,
+            counter4 = 0;
+
+        var ChildView = Backbone.View.extend("ChildView", {
+            template: "<div class='div1'><div class='div1-div'></div></div><div class='div2'><div class='div2-div'></div></div>",
+            events: {
+                "click .div1": function() {
+                    counter1++;
+                },
+                "click .div2": function() {
+                    counter2++;
+                },
+                "click .div1-div": function() {
+                    counter3++;
+                },
+                "click .div2-div": function() {
+                    counter4++;
+                }
+            }
+        });
+
+        var view = new ChildView();
+        view.render();
+
+        view.$(".div1").trigger("click");
+        assert.equal(counter1, 1);
+        assert.equal(counter2, 0);
+        assert.equal(counter3, 0);
+        assert.equal(counter4, 0);
+
+        view.$(".div2").trigger("click");
+        assert.equal(counter1, 1);
+        assert.equal(counter2, 1);
+        assert.equal(counter3, 0);
+        assert.equal(counter4, 0);
+
+        view.$(".div1-div").trigger("click");
+        assert.equal(counter1, 2);
+        assert.equal(counter2, 1);
+        assert.equal(counter3, 1);
+        assert.equal(counter4, 0);
+
+        view.$(".div2-div").trigger("click");
+        assert.equal(counter1, 2);
+        assert.equal(counter2, 2);
+        assert.equal(counter3, 1);
+        assert.equal(counter4, 1);
+
+    });
+
     QUnit.test("child view elems events not propagation", function(assert) {
         var counter1 = 0,
             counter2 = 0;
