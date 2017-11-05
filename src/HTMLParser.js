@@ -131,11 +131,19 @@
                     throw new Error("expected />");
                 }
 
+                if ( parent.nodeName == "textarea" ) {
+                    throw new Error("invalid html, textarea is multi tag");
+                }
+
                 this.i++;
                 return parent;
             }
             else if ( symb == ">" ) {
                 this.i++;
+            }
+
+            if ( parent.nodeName == "input" ) {
+                throw new Error("invalid html, input is single tag");
             }
 
             while ( this.isNotEnd() ) {

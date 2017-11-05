@@ -11,14 +11,10 @@
         <script src="../../vendor/underscore.js"></script>
         <script src="../../dist/backbone.js"></script>
 
-        <script type="text/template" id="counter-template">
-            <button>click #<%- count %></button>
-        </script>
-
         <script type="text/javascript">
 
             var CounterView = Backbone.View.extend("CounterView", {
-                template: "#counter-template",
+                template: "<button>click #<%- count %></button>",
 
                 model: {
                     count: 0

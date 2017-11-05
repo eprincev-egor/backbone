@@ -630,6 +630,95 @@
     $span = view.$("span");
     assert.ok( !!$span.length );
     assert.ok( $span.text() === "" );
+
+    $input.val("<bob>");
+    $input.trigger("input");
+
+    assert.ok( $input.val() == "<bob>" );
+    assert.ok( $span.text() == "<bob>" );
+  });
+
+  QUnit.test("textarea", function(assert) {
+      var TextareaView = Backbone.View.extend({
+          template: "<textarea <%= value('name') %>></textarea><div><%- name %></div>"
+      });
+
+      var textareaView, $textarea, $div;
+
+      textareaView = new TextareaView();
+      textareaView.render();
+
+      $textarea = textareaView.$("textarea");
+      assert.ok($textarea.length == 1);
+      assert.strictEqual( $textarea.val(), "" );
+
+      $div = textareaView.$("div");
+      assert.ok($div.length == 1);
+      assert.strictEqual( $div.text(), "" );
+
+      $textarea.val("<text>");
+      $textarea.trigger("input");
+
+      assert.equal( textareaView.model.get("name"), "<text>" );
+      assert.strictEqual( $div.text(), "<text>" );
+
+      textareaView = new TextareaView({
+          model: {
+              name: "<nice!/>"
+          }
+      });
+      textareaView.render();
+
+      $textarea = textareaView.$("textarea");
+      assert.ok($textarea.length == 1);
+      assert.strictEqual( $textarea.val(), "<nice!/>" );
+
+      $div = textareaView.$("div");
+      assert.ok($div.length == 1);
+      assert.strictEqual( $div.text(), "<nice!/>" );
+  });
+
+  QUnit.test("checkbox", function(assert) {
+      var CheckboxView = Backbone.View.extend({
+          template: "<input type='checkbox' <%= value('someFlag') %>/><div><%= someFlag ? 'enabled' : 'disabled' %></div>",
+          model: {
+              someFlag: false
+          }
+      });
+
+      var checkboxView, $checkbox, $div;
+
+      checkboxView = new CheckboxView();
+      checkboxView.render();
+
+      $checkbox = checkboxView.$("input");
+      assert.ok($checkbox.length == 1);
+      assert.strictEqual( $checkbox.prop("checked"), false );
+
+      $div = checkboxView.$("div");
+      assert.ok($div.length == 1);
+      assert.strictEqual( $div.text(), "disabled" );
+
+      $checkbox.prop("checked", true);
+      $checkbox.trigger("change");
+
+      assert.equal( checkboxView.model.get("someFlag"), true );
+      assert.strictEqual( $div.text(), "enabled" );
+
+      checkboxView = new CheckboxView({
+          model: {
+              someFlag: true
+          }
+      });
+      checkboxView.render();
+
+      $checkbox = checkboxView.$("input");
+      assert.ok($checkbox.length == 1);
+      assert.strictEqual( $checkbox.prop("checked"), true );
+
+      $div = checkboxView.$("div");
+      assert.ok($div.length == 1);
+      assert.strictEqual( $div.text(), "enabled" );
   });
 
   QUnit.test("treeView", function(assert) {
@@ -810,6 +899,36 @@
       assert.notEqual( resizeView.$("div").text().replace(/\s/g, ""), "Width:0pxHeight:0px" );
 
       resizeView.remove();
+  });
+
+  QUnit.test("button counter", function(assert) {
+      var CounterView = Backbone.View.extend("CounterView", {
+          template: "<button>click #<%- count %></button>",
+
+          model: {
+              count: 0
+          },
+
+          events: {
+              "click button": function() {
+                  this.model.set("count", this.model.get("count") + 1);
+              }
+          }
+      });
+
+      var counterView = new CounterView();
+      counterView.render();
+
+      var $button = counterView.$("button");
+
+      assert.equal($button.text(), "click #0");
+
+      $button.click();
+      assert.equal($button.text(), "click #1");
+
+      $button.click();
+      assert.equal($button.text(), "click #2");
+
   });
 
   QUnit.test("child view elems events not propagation", function(assert) {

@@ -178,6 +178,37 @@
 
     QUnit.test("parseFragment", function(assert) {
 
+        testHTML(assert, "<input/>", [
+            {
+                nodeName: "input",
+                attrs: [],
+                childNodes: []
+            }
+        ]);
+        testHTML(assert, "<input></input>", [
+            {
+                nodeName: "input",
+                attrs: [],
+                childNodes: []
+            }
+        ], true);
+
+        testHTML(assert, "<textarea></textarea>", [
+            {
+                nodeName: "textarea",
+                attrs: [],
+                childNodes: []
+            }
+        ]);
+
+        testHTML(assert, "<textarea/>", [
+            {
+                nodeName: "textarea",
+                attrs: [],
+                childNodes: []
+            }
+        ], true);
+
         testHTML(assert, "<div></div>", [
             {
                 nodeName: "div",
