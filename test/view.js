@@ -712,6 +712,100 @@
         assert.ok($span.text() == "<bob>");
     });
 
+    QUnit.test("2 input with one key, vdom render", function(assert) {
+        var View = Backbone.View.extend({
+            template: "<input class='input1' <%= value('name') %>/><input class='input2' <%= value('name') %>/><span><%- name %></span>"
+        });
+
+        var view, $input1, $input2, $span;
+
+        view = new View({
+            model: {
+                name: "test"
+            }
+        });
+        view.render();
+
+        $input1 = view.$(".input1");
+        $input2 = view.$(".input2");
+        $span = view.$("span");
+
+        assert.equal( $input1.val(), "test" );
+        assert.equal( $input2.val(), "test" );
+        assert.equal( $span.text(), "test" );
+
+        $input1.val("test2").trigger("input");
+
+        assert.equal( $input1.val(), "test2" );
+        assert.equal( $input2.val(), "test2" );
+        assert.equal( $span.text(), "test2" );
+
+        $input2.val("test3").trigger("input");
+
+        assert.equal( $input1.val(), "test3" );
+        assert.equal( $input2.val(), "test3" );
+        assert.equal( $span.text(), "test3" );
+    });
+
+    QUnit.test("<%= value(options, key) %>", function(assert) {
+        var View = Backbone.View.extend({
+            template: "<input class='input' <%= value(options, 'name') %>/><span><%- options.name  %></span>",
+
+            options: {
+                name: {
+                    default: "<Y>"
+                }
+            }
+        });
+
+        var view, $input, $span;
+
+        view = new View();
+        view.render();
+
+        $input = view.$(".input");
+        $span = view.$("span");
+
+        assert.equal( $input.val(), "<Y>" );
+        assert.equal( $span.text(), "<Y>" );
+
+        $input.val("<Y&>").trigger("input");
+
+        assert.equal( $input.val(), "<Y&>" );
+        assert.equal( $span.text(), "<Y&>" );
+        assert.equal( view.options.name, "<Y&>" );
+    });
+
+    QUnit.test("<%= value(anyObject, key) %>", function(assert) {
+        var testObj = {
+            name: "<nice>"
+        };
+        var View = Backbone.View.extend({
+            template: "<input class='input' <%= value(this.testObj, 'name') %>/><span><%- this.testObj.name  %></span>",
+
+            initialize: function() {
+                this.testObj = testObj;
+            }
+        });
+
+        var view, $input, $span;
+
+        view = new View();
+        view.render();
+
+        $input = view.$(".input");
+        $span = view.$("span");
+
+        assert.equal( $input.val(), "<nice>" );
+        assert.equal( $span.text(), "<nice>" );
+
+        $input.val("<nice&>").trigger("input");
+
+        assert.equal( $input.val(), "<nice&>" );
+        assert.equal( $span.text(), "<nice&>" );
+        assert.equal( testObj.name, "<nice&>" );
+    });
+
     QUnit.test("textarea", function(assert) {
         var TextareaView = Backbone.View.extend({
             template: "<textarea <%= value('name') %>></textarea><div><%- name %></div>"

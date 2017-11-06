@@ -19,7 +19,7 @@ var Backbone = require("./main"),
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function View(options) {
-    this._validateOptions(options);
+    options = this._validateOptions(options);
 
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
@@ -120,9 +120,10 @@ _.extend(View.prototype, Events, {
 
     _validateOptions: function(options) {
         if ( !this._options ) {
-            return;
+            return options;
         }
 
+        options = _.extend({}, options);
         for (var key in this._options) {
             var settings = this._options[ key ];
             if ( _.isFunction(settings) ) {
@@ -201,6 +202,8 @@ _.extend(View.prototype, Events, {
                 }
             }
         }
+
+        return options;
     },
 
     render: function() {
@@ -307,13 +310,24 @@ _.extend(View.prototype, Events, {
 
     // example:
     // <%= value( model, key ) %>
+    // <%= value( options, key ) %>
+    // <%= value( anyObject, key ) %>
     _templateValue: function(model, key) {
         if (arguments.length == 1) {
             key = model;
             model = this.model;
         }
 
-        var tmpId = _.uniqueId("val");
+        var tmpId;
+        if ( model.cid ) {
+            tmpId = model.cid + ":" + key;
+        }
+        else if ( model == this.options ) {
+            tmpId = "options:" + key;
+        }
+        else {
+            tmpId = _.uniqueId("val");
+        }
 
         if (!this._templateTmpEvents) {
             this._templateTmpEvents = {};
@@ -376,7 +390,12 @@ _.extend(View.prototype, Events, {
 
             model = tmp[0];
             key = tmp[1];
-            value = model.get(key);
+
+            if ( _.isFunction(model.get) ) {
+                value = model.get(key);
+            } else {
+                value = model[ key ];
+            }
 
             if (inputEl.type == "checkbox") {
                 if (value) {
@@ -565,11 +584,21 @@ _.extend(View.prototype, Events, {
             var model = tmp[0],
                 key = tmp[1];
 
-            if (e.target.type == "checkbox") {
-                model.set(key, !!e.target.checked);
+            if ( _.isFunction(model.set) ) {
+                if (e.target.type == "checkbox") {
+                    model.set(key, !!e.target.checked);
+                } else {
+                    model.set(key, e.target.value);
+                }
             } else {
-                model.set(key, e.target.value);
+                if (e.target.type == "checkbox") {
+                    model[key] = !!e.target.checked;
+                } else {
+                    model[key] = e.target.value;
+                }
+                this._liveRender();
             }
+
         }
         // ===============
 
