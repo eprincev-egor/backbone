@@ -5,7 +5,9 @@ var Backbone = require("./main"),
     HTMLParser = require("./HTMLParser"),
     _ = Backbone._;
 
-var Vdom = function Vdom() {};
+var Vdom = function Vdom(view) {
+    this.view = view;
+};
 
 _.extend(Vdom.prototype, {
     // call for first build
@@ -15,7 +17,11 @@ _.extend(Vdom.prototype, {
     },
 
     setDomNode: function(vnode, domNode) {
-        vnode.domNode = domNode;
+        if ( vnode.cid ) {
+            vnode.view = this.view.children[ vnode.cid ];
+        } else {
+            vnode.domNode = domNode;
+        }
 
         if (!_.isArray(vnode.childNodes)) {
             return;
@@ -49,12 +55,31 @@ _.extend(Vdom.prototype, {
                 textUpdated = true;
                 return textUpdated;
             }
-        } else {
+            vnode.domNode = previous.domNode;
+        }
+        else if ( vnode.cid ) {
+            this.updateView( previous, vnode );
+        }
+        else {
             updated = this.updateChildren(domNode, previous.childNodes, vnode.childNodes) || updated;
             updated = this.updateProperties(domNode, vnode, previous) || updated;
+            vnode.domNode = previous.domNode;
         }
-        vnode.domNode = previous.domNode;
+
         return textUpdated;
+    },
+
+    updateView: function(previous, vnode) {
+        var newOptions = this.view._viewOptionsByCid[ vnode.cid ],
+            oldView = previous.view;
+
+        if ( oldView ) {
+            if ( !_.isEqual(oldView.options, newOptions) ) {
+                oldView.setOptions( newOptions );
+            }
+        } else {
+            console.log("wtf");
+        }
     },
 
     updateChildren: function(domNode, oldChildren, newChildren, projectionOptions) {
@@ -116,10 +141,14 @@ _.extend(Vdom.prototype, {
         return -1;
     },
 
-    nodeToRemove: function(vNode) {
-        var domNode = vNode.domNode;
-        if (domNode.parentNode) {
-            domNode.parentNode.removeChild(domNode);
+    nodeToRemove: function(vnode) {
+        if ( vnode.view ) {
+            this.view._removeChildView(vnode.view);
+        } else {
+            var domNode = vnode.domNode;
+            if (domNode.parentNode) {
+                domNode.parentNode.removeChild(domNode);
+            }
         }
     },
 
@@ -134,7 +163,20 @@ _.extend(Vdom.prototype, {
             } else {
                 parentNode.appendChild(domNode);
             }
-        } else {
+        }
+        else if ( vnode.cid ) {
+            var newView = vnode.view || this.view._createChildView( vnode.cid );
+            vnode.view = newView;
+
+            if (insertBefore !== undefined) {
+                parentNode.insertBefore(newView.el, insertBefore);
+            } else if (newView.el.parentNode !== parentNode) {
+                parentNode.appendChild(newView.el);
+            }
+
+            newView.afterInsertHTML();
+        }
+        else {
             domNode = vnode.domNode = vnode.domNode || doc.createElement(vnode.nodeName);
 
             if (insertBefore !== undefined) {

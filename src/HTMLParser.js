@@ -92,6 +92,9 @@ _.extend(HTMLParser.prototype, {
                     } else {
                         attr.value = this.readTo(/[\s\/>]/);
                     }
+                    if ( key == "cid" ) {
+                        attrs.cid = attr.value;
+                    }
                 }
 
                 attrs.push(attr);
@@ -110,10 +113,17 @@ _.extend(HTMLParser.prototype, {
         this.skipSpace();
 
         var parent = {
-            nodeName: this.readTo(/[\s>\/]/).toLowerCase(),
+            nodeName: this.readTo(/[\s>\/]/),
             attrs: this.parseAttrs(),
             childNodes: []
         };
+
+        if ( !parent.attrs.cid ) {
+            parent.nodeName = parent.nodeName.toLowerCase();
+        } else {
+            parent.cid = parent.attrs.cid;
+            delete parent.attrs.cid;
+        }
 
         var symb, child,
             closeTagName;

@@ -12,21 +12,23 @@
     <script src="../../dist/backbone.js"></script>
 
     <script type="text/template" id="tree-template">
+        <div class='some'>
         <% if ( childs && childs.length ) { %>
             <b class="toggle"><%= opened ? "-" : "+" %></b>
-            <% } %>
+        <% } %>
 
-                <span><%- name %></span>
+        <span><%- name %></span>
 
-                <%
-                if ( opened ) {
-                    for (var i=0, n=childs && childs.length; i<n; i++ ) {
-                        TreeView({
-                            model: childs[ i ]
-                        })
-                    }
+        <%
+            if ( opened ) {
+                for (var i=0, n=childs && childs.length; i<n; i++ ) {
+                    TreeView({
+                        model: childs[ i ]
+                    })
                 }
-             %>
+            }
+        %>
+        </div>
     </script>
 
     <script type="text/javascript">

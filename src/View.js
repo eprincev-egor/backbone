@@ -19,28 +19,10 @@ var Backbone = require("./main"),
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function View(options) {
-    options = this._validateOptions(options);
-
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
-    _.extend(this, _.pick(options, viewOptions));
-    this.options = options;
 
-    if (
-        (this.Model || this.model) &&
-        !(this.model instanceof Backbone.Model)
-    ) {
-        var Model = this.Model || Backbone.Model;
-        this.model = new Model(this.model);
-    }
-
-    if (
-        (this.Collection || this.collection) &&
-        !(this.collection instanceof Backbone.Collection)
-    ) {
-        var Collection = this.Collection || Backbone.Collection;
-        this.collection = new Collection(this.collection);
-    }
+    this.setOptions(options);
 
     this.ui = {};
 
@@ -52,6 +34,9 @@ var View = function View(options) {
 
     if (!options || options.createElement !== false) {
         this._ensureElement();
+        if ( options ) {
+            delete options.createElement;  // need for _.isEqual
+        }
     }
 
     this.initialize.apply(this, arguments);
@@ -216,6 +201,58 @@ _.extend(View.prototype, Events, {
         return options;
     },
 
+    setOptions: function(options) {
+        options = this._validateOptions(options);
+        _.extend(this, _.pick(options, viewOptions));
+        this.options = options;
+
+        if (
+            (this.Model || this.model) &&
+            !(this.model instanceof Backbone.Model)
+        ) {
+            var Model = this.Model || Backbone.Model;
+            this.model = new Model(this.model);
+        }
+
+        if (
+            (this.Collection || this.collection) &&
+            !(this.collection instanceof Backbone.Collection)
+        ) {
+            var Collection = this.Collection || Backbone.Collection;
+            this.collection = new Collection(this.collection);
+        }
+
+        if ( this._rendered ) {
+            this._liveRender();
+        }
+    },
+
+    _createChildView: function(optionsId) {
+        var options = this._viewOptionsByCid[ optionsId ];
+        var className = options.type,
+            ChildView = this.Views[className];
+
+        // for Tree
+        if (className == this.constructor.className) {
+            ChildView = this.constructor;
+        }
+
+        var childView = new ChildView(options);
+
+        if (!this.children) {
+            this.children = {};
+        }
+        this.children[ childView.cid ] = childView;
+
+        childView.render();
+        return childView;
+    },
+
+    _removeChildView: function(childView) {
+        childView.remove();
+        delete this.children[ childView.cid ];
+    },
+
     render: function() {
         if (!this.template) {
             return this;
@@ -250,8 +287,7 @@ _.extend(View.prototype, Events, {
         }
 
 
-        this.templateCache = this.template();
-        this.el.innerHTML = this.templateCache;
+        this.el.innerHTML = this.template();
         this._listenData();
         this.afterInsertHTML();
     },
@@ -272,13 +308,15 @@ _.extend(View.prototype, Events, {
         }
 
         if (!this.vdom) {
-            this.vdom = new Vdom();
+            this.vdom = new Vdom(this);
             // only first live render
-            this.vdom.build(this.el, this.templateCache);
+            this.vdom.build(this.el, this._templateCache);
+            delete this._templateCache;
         }
 
-        this.templateCache = this.template();
-        this.vdom.update(this.el, this.templateCache);
+        this._viewOptionsByCid = {};
+        var newHTML = this.template();
+        this.vdom.update(this.el, newHTML);
 
         // rebind ui
         this.afterInsertHTML();
@@ -344,11 +382,10 @@ _.extend(View.prototype, Events, {
         }
         this._templateTmpEvents[tmpId] = [model, key];
 
-        //return ' value="'+ _.escape( model.get(key) ) +'" __tmp-id="'+ tmpId +'" ';
         return ' __tmp-id="' + tmpId + '" ';
     },
 
-    _templateChildView: function(print, options) {
+    _templateChildView: function(print, getHTML, options) {
         var className = options.type,
             ChildView = this.Views[className];
 
@@ -357,18 +394,29 @@ _.extend(View.prototype, Events, {
             ChildView = this.constructor;
         }
 
-        // чтобы потомок не создавал DOM элемент
-        options.createElement = false;
-        var childView = new ChildView(options);
+        if ( !this.vdom ) {
+            // чтобы потомок не создавал DOM элемент
+            options.createElement = false;
+            var childView = new ChildView(options);
 
-        if (!this.children) {
-            this.children = [];
+            if (!this.children) {
+                this.children = {};
+            }
+            this.children[ childView.cid ] = childView;
+
+            var currentHTML = getHTML();
+            this._templateCache += currentHTML.slice(this._lastTemplateIndex);
+            this._templateCache += "<"+ className +" cid='"+ childView.cid +"'/>";
+
+            var outerHMTL = childView._outerHTML();
+            print(outerHMTL);
+            this._lastTemplateIndex = currentHTML.length + outerHMTL.length;
         }
-        this.children.push(childView);
-
-        print(childView._outerHTML());
-
-        return childView;
+        else {
+            var cid = _.uniqueId("childView");
+            this._viewOptionsByCid[ cid ] = options;
+            print( "<" + className + " cid='"+ cid +"'/>" );
+        }
     },
 
     _bindUI: function() {
@@ -727,6 +775,7 @@ _.extend(View.prototype, Events, {
         var tagName = _.result(this, 'tagName'),
             attrs = _.extend({}, _.result(this, 'attributes')),
             open,
+            content = "",
             attrsHTML = "",
             close = "</" + tagName + ">";
 
@@ -741,11 +790,11 @@ _.extend(View.prototype, Events, {
 
         if ( this.template ) {
             // need for virtual dom
-            this.templateCache = this.template();
+            content = this.template();
         }
         this._listenData();
 
-        return open + this.templateCache + close;
+        return open + content + close;
     },
 
 
@@ -770,7 +819,7 @@ var TemplateScope = function TemplateScope(view, print) {
 
 _.extend(TemplateScope.prototype, {
     View: function(options) {
-        return this.view._templateChildView(this.print, options);
+        return this.view._templateChildView(this.print, this._getHTML, options);
     },
 
     // lazy helpers::
@@ -843,12 +892,20 @@ View._beforeExtend = function(className, protoProps, staticProps) {
         // это позволяет использовать элементы внутри элементов
         templateString = (
             "<%" +
-            " scope = new this.TemplateScope(this, print);" +
+            " var scope = new this.TemplateScope(this, print);" +
+            " scope._getHTML = function() {return __p;}; " +
             " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}, options = this.options; " +
             "with(_modelAttribures) {"+
+            " if ( !this.vdom ) { " +
+            " this._lastTemplateIndex = 0; " +
+            " this._templateCache = ''; " +
+            " } " +
             "with(scope) { %>" +
             templateString +
-            "<% } } %>"
+            "<% } };"+
+            " if ( !this.vdom ) { " +
+            " this._templateCache += __p.slice(this._lastTemplateIndex); "+
+            "} %>"
         );
         protoProps.template = _.template(templateString, {
             variable: "scope"

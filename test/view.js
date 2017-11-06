@@ -1140,7 +1140,7 @@
             }
         });
         var ParentView = Backbone.View.extend({
-            template: "<% this.child = Child() %>",
+            template: "<% Child() %>",
             Views: {
                 Child: ChildView
             }
@@ -1149,7 +1149,7 @@
         var parentView = new ParentView();
         parentView.render();
 
-        assert.equal( parentView.child.ui.input.value, "nice" );
+        assert.equal( parentView.$("input").val(), "nice" );
     });
 
     QUnit.test("{events: '.some'}, check event.target on right selector", function(assert) {
