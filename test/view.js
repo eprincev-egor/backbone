@@ -641,7 +641,7 @@
 
     });
 
-    QUnit.test("render template <h1hello <%- name %>></h1>", function(assert) {
+    QUnit.test("render template <h1>hello <%- name %>></h1>", function(assert) {
         assert.expect(2);
 
         var View = Backbone.View.extend({
@@ -893,7 +893,17 @@
 
         var TreeView = Backbone.View.extend("TreeView", {
             template: "#tree-view-template",
+
+            events: {
+                "click .toggle": "onClickToggle"
+            },
+
+            onClickToggle: function() {
+                this.model.set("opened", !this.model.get("opened"));
+            },
+
             model: {
+                opened: false,
                 name: "",
                 childs: []
             }
@@ -907,6 +917,7 @@
                 },
                 {
                     name: "item 1.2",
+                    opened: true,
                     childs: [{
                             name: "item 1.2.1"
                         },
@@ -941,6 +952,8 @@
         assert.equal(treeView.$("div div span").eq(0).text(), "item 1.2.1");
         assert.equal(treeView.$("div div span").eq(1).text(), "item 1.2.2");
 
+        treeView.$(".toggle").eq(1).trigger("click");
+        assert.equal( treeView.$("span").length, 3 );
     });
 
     QUnit.test("inputList", function(assert) {
@@ -1192,9 +1205,10 @@
 
     });
 
-    QUnit.test("child view elems events not propagation", function(assert) {
+    QUnit.test("child view events not bubbling to parent view, but bubbling to window", function(assert) {
         var counter1 = 0,
-            counter2 = 0;
+            counter2 = 0,
+            counter3 = 0;
 
         var ChildView = Backbone.View.extend("ChildView", {
             template: "<button></button>",
@@ -1216,18 +1230,25 @@
             }
         });
 
+        $(document.body).on("click", function(e) {
+            counter3++;
+        });
+
         var parentView = new ParentView();
         parentView.render();
+        parentView.$el.appendTo("body");
 
         parentView.$("button").eq(1).trigger("click");
 
         assert.equal(counter1, 1);
         assert.equal(counter2, 0);
+        assert.equal(counter3, 1);
 
         parentView.$("button").eq(0).trigger("click");
 
         assert.equal(counter1, 1);
         assert.equal(counter2, 1);
+        assert.equal(counter3, 2);
 
     });
 

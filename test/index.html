@@ -29,14 +29,19 @@
     <script type="text/template" id="test2"><textarea <%= value( "name") %>/></script>
 
   <script type="text/template" id="tree-view-template">
+      <% if ( childs && childs.length ) { %>
+      <b class='toggle'><%= opened ? "-" : "+" %></b>
+      <% } %>
       <span><%- name %></span>
       <%
-        for (var i=0, n=childs.length; i<n; i++) {
-            var child = childs[ i ];
-            TreeView({
-                model: child
-            });
-        }
+          if ( opened ) {
+              for (var i=0, n=childs.length; i<n; i++) {
+                  var child = childs[ i ];
+                  TreeView({
+                      model: child
+                  });
+              }
+          }
       %>
   </script>
 

@@ -70,12 +70,22 @@ if (Backbone.$) {
         $(el).off(eventName, handler);
     };
 } else {
-    addEventListener = function(el, eventName, handler) {
-        el.addEventListener(eventName, handler);
-    };
-    removeEventListener = function(el, eventName, handler) {
-        el.removeEventListener(eventName, handler);
-    };
+    if ( window.addEventListener ) {
+        addEventListener = function(el, eventName, handler) {
+            el.addEventListener(eventName, handler);
+        };
+        removeEventListener = function(el, eventName, handler) {
+            el.removeEventListener(eventName, handler);
+        };
+    } else {
+        addEventListener = function(el, eventName, handler) {
+            el.attachEvent("on" + eventName, handler);
+        };
+        removeEventListener = function(el, eventName, handler) {
+            el.detachEvent("on" + eventName, handler);
+        };
+    }
+
 }
 
 var _eventKey2nameAndSelector = function(key) {
@@ -282,7 +292,7 @@ _.extend(View.prototype, Events, {
 
         // bindUI in subElems
         if (this.children) {
-            this.children.forEach(function(childView) {
+            _.each(this.children, function(childView) {
                 childView.afterInsertHTML(this.el);
             }, this);
         }
@@ -379,7 +389,7 @@ _.extend(View.prototype, Events, {
         }
 
         var inputsEls = this.el.querySelectorAll("[__tmp-id]");
-        inputsEls.forEach(function(inputEl) {
+        _.each(inputsEls, function(inputEl) {
             var tmpId = inputEl.getAttribute("__tmp-id"),
                 tmp = this._templateTmpEvents[tmpId],
                 model, key, value;
@@ -615,8 +625,9 @@ _.extend(View.prototype, Events, {
             }
 
             // that event processed in child view
-            if ( e._processedElement ) {
-                if ( e._processedElement != this.el ) {
+            var origEvent = e.originalEvent || e;
+            if ( origEvent._processedElement ) {
+                if ( origEvent._processedElement != this.el ) {
                     return;
                 }
             }
@@ -652,8 +663,9 @@ _.extend(View.prototype, Events, {
             if ( element == e.target || element.contains(e.target) ) {
 
                 // stop propagation to parent views
-                if ( !e._processedElement ) {
-                    e._processedElement = this.el;
+                var origEvent = e.originalEvent || e;
+                if ( !origEvent._processedElement ) {
+                    origEvent._processedElement = this.el;
                 }
 
                 return method.call(this, e);
