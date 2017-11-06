@@ -1137,4 +1137,355 @@
 
     });
 
+    QUnit.test("menu", function(assert) {
+        var MenuItemView = Backbone.View.extend({
+            tagName: "li",
+            template: "#menu-item-template",
+
+            options: {
+                lvl: {
+                    type: Number,
+                    required: true
+                },
+                name: {
+                    type: String,
+                    required: true
+                },
+                children: {
+                    type: Array,
+                    default: []
+                }
+            },
+
+            className: function() {
+                var children = this.options.children,
+                    classes = [];
+
+                if ( children && children.length ) {
+                    classes.push("has-children");
+                }
+
+                classes.push("lvl-" + this.options.lvl);
+
+                return classes;
+            }
+        });
+
+        var MenuCollectionView = Backbone.View.extend({
+            tagName: "ul",
+            template: "#menu-collection-template",
+            className: function() {
+                return "lvl-" + this.options.lvl;
+            },
+
+            options: {
+                lvl: {
+                    type: Number,
+                    default: 1
+                }
+            },
+
+            Views: {
+                Item: MenuItemView
+            }
+        });
+
+        MenuItemView.addView("Menu", MenuCollectionView);
+
+        var menu = new MenuCollectionView({
+            collection: [
+                {
+                    name: "Item 1"
+                },
+                {
+                    name: "Item 2",
+                    children: [
+                        {
+                            name: "Item 2.1"
+                        },
+                        {
+                            name: "Item 2.2"
+                        }
+                    ]
+                }
+            ]
+        });
+
+        menu.render();
+
+        assert.equal(menu.$("a").eq(0).text(), "Item 1");
+        assert.equal(menu.$("a").eq(1).text(), "Item 2");
+        assert.equal(menu.$("a").eq(2).text(), "Item 2.1");
+        assert.equal(menu.$("a").eq(3).text(), "Item 2.2");
+
+        assert.ok(menu.$el.hasClass("lvl-1"));
+
+        assert.ok( !menu.$("li").eq(0).hasClass("has-children") );
+        assert.ok( menu.$("li").eq(0).hasClass("lvl-1") );
+
+        assert.ok( menu.$("li").eq(1).hasClass("has-children") );
+        assert.ok( menu.$("li").eq(1).hasClass("lvl-1") );
+
+        assert.ok( menu.$("ul").hasClass("lvl-2") );
+        assert.ok( menu.$("ul li").eq(0).hasClass("lvl-2") );
+        assert.ok( menu.$("ul li").eq(1).hasClass("lvl-2") );
+    });
+
+    QUnit.test("view attributes", function(assert) {
+        var ChildView = Backbone.View.extend({
+            tagName: "span",
+            attributes: {
+                id: 1,
+                class: "nice",
+                "some-attr": "<"
+            }
+        });
+
+        var ParentView = Backbone.View.extend({
+            Views: {Child: ChildView},
+            template: "<% Child() %>"
+        });
+
+        var view = new ParentView();
+        view.render();
+
+        assert.equal( view.$("span").attr("id"), 1 );
+        assert.equal( view.$("span").attr("class"), "nice" );
+        assert.equal( view.$("span").attr("some-attr"), "<" );
+    });
+
+    QUnit.test("view options", function(assert) {
+        var View, view;
+
+        View = Backbone.View.extend({
+            options: {
+                bool: Boolean,
+                numb: Number,
+                str: String,
+                arr: Array,
+                obj: Object,
+                date: Date
+            }
+        });
+
+        view = new View({
+            bool: true,
+            numb: 1,
+            str: "nice",
+            arr: [{a: 1}],
+            obj: {x: 2}
+        });
+
+        assert.equal(view.options.bool, true);
+        assert.equal(view.options.numb, 1);
+        assert.equal(view.options.str, "nice");
+        assert.equal(view.options.arr[0].a, 1);
+        assert.equal(view.options.obj.x, 2);
+
+        // must be error
+        try {
+            view = new View({ numb: NaN });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ numb: "1" });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ bool: 1 });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+
+        try {
+            view = new View({ str: 1 });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+
+        try {
+            view = new View({ arr: false });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ obj: 1 });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ date: 1 });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+
+        // no error
+        view = new View({ numb: -1.8 });
+        assert.ok(true, "numb -1.8");
+
+        view = new View({ str: "" });
+        assert.ok(true, "str ''");
+
+        view = new View({ bool: false });
+        assert.ok(true, "bool false");
+
+        view = new View({ bool: true });
+        assert.ok(true, "bool true");
+
+        view = new View({ obj: {} });
+        assert.ok(true, "obj {}");
+
+        view = new View({ arr: [] });
+        assert.ok(true, "arr []");
+    });
+
+    QUnit.test("view options required, validate", function(assert) {
+        var View, view;
+
+        View = Backbone.View.extend({
+            options: {
+                req: {required: true},
+                reqNumb: {type: Number, required: true},
+                reqArr: {type: Array, required: true},
+                reqBool: {type: Boolean, required: true},
+
+                validNumb: {type: Number, validate: function(value) { return value >= 0; }},
+                validStr: {type: String, validate: /^\w+$/}
+            }
+        });
+
+        view = new View({
+            req: false,
+            reqNumb: -1,
+            reqArr: [],
+            reqBool: false,
+            validNumb: 0,
+            validStr: "test"
+        });
+
+        assert.strictEqual( view.options.req, false );
+        assert.strictEqual( view.options.reqNumb, -1 );
+        assert.ok( view.options.reqArr && view.options.reqArr.length === 0 );
+        assert.strictEqual( view.options.reqBool, false );
+        assert.strictEqual( view.options.validNumb, 0 );
+        assert.strictEqual( view.options.validStr, "test" );
+
+
+        View = Backbone.View.extend({
+            options: {
+                test: {required: true}
+            }
+        });
+        try {
+            view = new View({});
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            // !!! null can be from db, and it valid value
+            view = new View({ test: null });
+            assert.ok(true);
+        } catch(err) {
+            assert.ok(false);
+        }
+
+        View = Backbone.View.extend({
+            options: {
+                test: {required: true, nulls: false}
+            }
+        });
+        try {
+            view = new View({});
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            // nulls === false
+            view = new View({ test: null });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+
+
+        View = Backbone.View.extend({
+            options: {
+                str: {validate: /^\w+$/}
+            }
+        });
+        try {
+            // only not null values will validated
+            view = new View({});
+            assert.ok(true);
+        } catch(err) {
+            assert.ok(false);
+        }
+        try {
+            view = new View({ str: "" });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ str: "!" });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+        try {
+            view = new View({ str: "nice" });
+            assert.ok(true);
+        } catch(err) {
+            assert.ok(false);
+        }
+
+
+        View = Backbone.View.extend({
+            options: {
+                numb: {validate: function(value) {return value >= 0; }}
+            }
+        });
+        try {
+            // only not null values will validated
+            view = new View({});
+            assert.ok(true);
+        } catch(err) {
+            assert.ok(false);
+        }
+        try {
+            // only not null values will validated
+            view = new View({ numb: -1 });
+            assert.ok(false);
+        } catch(err) {
+            assert.ok(true);
+        }
+
+        View = Backbone.View.extend({
+            some1: function() {},
+            options: {
+                checkContext: {
+                    validate: function(value) {
+                        assert.ok( _.isFunction( this.some1 ) );
+                        return true;
+                    }
+                }
+            }
+        });
+        new View({
+            checkContext: 1
+        });
+
+    });
+
 })(QUnit);

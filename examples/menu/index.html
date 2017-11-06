@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js menu</title>
+</head>
+
+<body>
+
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
+
+    <script type="text/template" id="menu-item-template">
+        <a><%- options.name %></a>
+        <%
+            var children = options.children;
+            if ( children.length ) {
+                Menu({
+                    lvl: options.lvl + 1,
+                    collection: children
+                })
+            }
+        %>
+    </script>
+
+    <script type="text/template" id="menu-collection-template">
+        <%
+            for (var i=0, n=this.collection.length; i<n; i++) {
+                var itemModel = this.collection.at(i);
+                Item({
+                    lvl: options.lvl,
+                    name: itemModel.get("name"),
+                    children: itemModel.get("children")
+                });
+            }
+        %>
+    </script>
+
+    <script type="text/javascript">
+        var MenuItemView = Backbone.View.extend("MenuItemView", {
+            tagName: "li",
+            template: "#menu-item-template",
+
+            options: {
+                lvl: {
+                    type: Number,
+                    required: true
+                },
+                name: {
+                    type: String,
+                    required: true
+                },
+                children: {
+                    type: Array,
+                    default: []
+                }
+            },
+
+            className: function() {
+                var children = this.options.children,
+                    classes = [];
+
+                if ( children && children.length ) {
+                    classes.push("has-children");
+                }
+
+                classes.push("lvl-" + this.options.lvl);
+
+                return classes;
+            }
+        });
+
+        var MenuCollectionView = Backbone.View.extend("MenuCollectionView", {
+            tagName: "ul",
+            template: "#menu-collection-template",
+            className: function() {
+                return "lvl-" + this.options.lvl;
+            },
+
+            options: {
+                lvl: {
+                    type: Number,
+                    default: 1
+                }
+            },
+
+            Views: {
+                Item: MenuItemView
+            }
+        });
+
+        MenuItemView.addView("Menu", MenuCollectionView);
+
+        var menu = new MenuCollectionView({
+            collection: [
+                {
+                    name: "Item 1"
+                },
+                {
+                    name: "Item 2",
+                    children: [
+                        {
+                            name: "Item 2.1"
+                        },
+                        {
+                            name: "Item 2.2"
+                        }
+                    ]
+                }
+            ]
+        });
+
+        menu.render();
+        document.body.appendChild(menu.el);
+
+    </script>
+
+</body>
+
+</html>

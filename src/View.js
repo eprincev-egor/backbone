@@ -19,9 +19,12 @@ var Backbone = require("./main"),
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function View(options) {
+    this._validateOptions(options);
+
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
     _.extend(this, _.pick(options, viewOptions));
+    this.options = options;
 
     if (
         (this.Model || this.model) &&
@@ -114,6 +117,91 @@ _.extend(View.prototype, Events, {
     // Initialize is an empty function by default. Override it with your own
     // initialization logic.
     initialize: function() {},
+
+    _validateOptions: function(options) {
+        if ( !this._options ) {
+            return;
+        }
+
+        for (var key in this._options) {
+            var settings = this._options[ key ];
+            if ( _.isFunction(settings) ) {
+                settings = {
+                    type: settings
+                };
+            }
+
+            var value = options[ key ];
+
+            if ( settings.type == Number && value != null ) {
+                if ( !_.isNumber(value) ) {
+                    throw new Error("options["+ key +"] must be are Number");
+                }
+                if ( _.isNaN(value) ) {
+                    throw new Error("options["+ key +"] can't be NaN");
+                }
+            }
+
+            if ( settings.type == String && value != null ) {
+                if ( !_.isString(value) ) {
+                    throw new Error("options["+ key +"] must be are String");
+                }
+            }
+
+            if ( settings.type == Boolean && value != null ) {
+                if ( !_.isBoolean(value) ) {
+                    throw new Error("options["+ key +"] must be are Boolean");
+                }
+            }
+
+            if ( settings.type == Object && value != null ) {
+                if ( !_.isObject(value) ) {
+                    throw new Error("options["+ key +"] must be are Object");
+                }
+            }
+
+            if ( settings.type == Array && value != null ) {
+                if ( !_.isArray(value) ) {
+                    throw new Error("options["+ key +"] must be are Array");
+                }
+            }
+
+            if ( settings.type == Date && value != null ) {
+                if ( !_.isDate(value) ) {
+                    throw new Error("options["+ key +"] must be are Date");
+                }
+            }
+
+            if ( settings.required && !(key in options) ) {
+                throw new Error("required option: " + key);
+            }
+
+            if ( settings.nulls === false && value == null ) {
+                throw new Error("option: " + key + ", cannot be null");
+            }
+
+            if ( value != null ) {
+                if ( _.isFunction(settings.validate) ) {
+                    if ( !settings.validate.call(this, value) ) {
+                        throw new Error("invalid option: " + key);
+                    }
+                }
+                else if ( _.isRegExp(settings.validate) ) {
+                    if ( !settings.validate.test(value) ) {
+                        throw new Error("invalid option: " + key);
+                    }
+                }
+            }
+
+            if ( settings.default && value == null ) {
+                if ( _.isObject(settings.default) || _.isArray(settings.default) ) {
+                    options[ key ] = _.clone( settings.default );
+                } else {
+                    options[ key ] = settings.default;
+                }
+            }
+        }
+    },
 
     render: function() {
         if (!this.template) {
@@ -258,20 +346,6 @@ _.extend(View.prototype, Events, {
 
         return childView;
     },
-
-    // called by parent
-    _outerHTML: function() {
-        var tagName = this.tagName,
-            open = "<" + tagName + " cid='" + this.cid + "'>",
-            close = "</" + tagName + ">";
-
-        // need for virtual dom
-        this.templateCache = this.template();
-        this._listenData();
-
-        return open + this.templateCache + close;
-    },
-
 
     _bindUI: function() {
         this.ui = {};
@@ -589,13 +663,50 @@ _.extend(View.prototype, Events, {
         if (!this.el) {
             var attrs = _.extend({}, _.result(this, 'attributes'));
             if (this.id) attrs.id = _.result(this, 'id');
-            if (this.className) attrs['class'] = _.result(this, 'className');
+            if (this.className) attrs['class'] = this._getClassName();
             this.setElement(this._createElement(_.result(this, 'tagName')));
             this._setAttributes(attrs);
         } else {
             this.setElement(_.result(this, 'el'));
         }
     },
+
+    _getClassName: function() {
+        var className = _.result(this, 'className');
+
+        if ( _.isArray(className) ) {
+            className = className.join(" ");
+        }
+
+        return className;
+    },
+
+    // called by parent
+    _outerHTML: function() {
+        var tagName = _.result(this, 'tagName'),
+            attrs = _.extend({}, _.result(this, 'attributes')),
+            open,
+            attrsHTML = "",
+            close = "</" + tagName + ">";
+
+        if (this.id) attrs.id = _.result(this, 'id');
+        if (this.className) attrs['class'] = this._getClassName();
+
+        for (var key in attrs) {
+            attrsHTML += key + "='"+ _.escape( attrs[key] ) +"'";
+        }
+
+        open = "<" + tagName + " cid='" + this.cid + "' "+ attrsHTML +">";
+
+        if ( this.template ) {
+            // need for virtual dom
+            this.templateCache = this.template();
+        }
+        this._listenData();
+
+        return open + this.templateCache + close;
+    },
+
 
     // Set attributes from a hash on this view's element.  Exposed for
     // subclasses using an alternative DOM manipulation API.
@@ -638,6 +749,11 @@ View.TemplateScope = TemplateScope;
 View.prototype.TemplateScope = TemplateScope;
 
 View._beforeExtend = function(className, protoProps, staticProps) {
+    if ( protoProps.options ) {
+        protoProps._options = protoProps.options;
+        delete protoProps.options;
+    }
+
     if (protoProps.ui) {
         protoProps._ui = protoProps.ui;
         delete protoProps.ui;
@@ -687,8 +803,9 @@ View._beforeExtend = function(className, protoProps, staticProps) {
         templateString = (
             "<%" +
             " scope = new this.TemplateScope(this, print);" +
-            " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}; " +
-            "with(_modelAttribures) {with(scope) { %>" +
+            " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}, options = this.options; " +
+            "with(_modelAttribures) {"+
+            "with(scope) { %>" +
             templateString +
             "<% } } %>"
         );
@@ -736,6 +853,19 @@ View._afterExtend = function(child) {
             return scope.View(options);
         };
     });
+
+    // when you have circular dependency
+    child.addView = function(key, SomeView) {
+        proto.Views[ key ] = SomeView;
+        proto.TemplateScope.prototype[key] = function(options) {
+            if (!options) {
+                options = {};
+            }
+            var scope = this;
+            options.type = key;
+            return scope.View(options);
+        };
+    };
 };
 
 

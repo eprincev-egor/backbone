@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js form</title>
+</head>
+
+<body>
+
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
+
+    <script type="text/template" id="input-template">
+        <input <%= value( "value") %>/>
+        <% if ( this.btn ) { %>
+            <div class="btn"></div>
+        <% } %>
+        <label><%- label %></label>
+    </script>
+
+    <script type="text/template" id="form-template">
+        <%
+            for (var key in this.config) {
+                var elemParams = this.config[ key ],
+                    type = elemParams.type;
+
+                View({
+                    type: type,
+                    key: key,
+                    label: elemParams.label
+                })
+            }
+        %>
+    </script>
+
+
+    <script type="text/javascript">
+        var InputView = Backbone.View.extend("InputView", {
+            template: "#input-template",
+
+            btn: false,
+            model: {
+                value: null,
+                label: ""
+            }
+        });
+
+        var DatePickerView = InputView.extend("DatePickerView", {
+            btn: true
+        });
+
+        var FormView = Backbone.View.extend("FormView", {
+            template: "#form-template",
+            Views: {
+                Input: InputView,
+                Date: DatePickerView
+            },
+            config: {},
+            model: {}
+        });
+
+        var UserFormView = FormView.extend("UserFormView", {
+            config: {
+                name: {
+                    type: "Input",
+                    label: "Name"
+                },
+                born: {
+                    type: "Date",
+                    label: "Born date"
+                }
+            }
+        });
+
+        var userFormView = new UserFormView({
+            model: {
+                name: "Andrew",
+                born: new Date()
+            }
+        });
+
+        userFormView.render();
+        document.body.appendChild( userFormView.el );
+
+    </script>
+
+</body>
+
+</html>

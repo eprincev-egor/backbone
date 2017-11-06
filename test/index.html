@@ -73,5 +73,31 @@
       </div>
   </script>
 
+  <script type="text/template" id="menu-item-template">
+      <a><%- options.name %></a>
+      <%
+          var children = options.children;
+          if ( children.length ) {
+              Menu({
+                  lvl: options.lvl + 1,
+                  collection: children
+              })
+          }
+      %>
+  </script>
+
+  <script type="text/template" id="menu-collection-template">
+      <%
+          for (var i=0, n=this.collection.length; i<n; i++) {
+              var itemModel = this.collection.at(i);
+              Item({
+                  lvl: options.lvl,
+                  name: itemModel.get("name"),
+                  children: itemModel.get("children")
+              });
+          }
+      %>
+  </script>
+
 </body>
 </html>
