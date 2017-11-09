@@ -77,6 +77,7 @@ _.extend(Vdom.prototype, {
             if ( !_.isEqual(oldView.options, newOptions) ) {
                 oldView.setOptions( newOptions );
             }
+            vnode.view = oldView;
         } else {
             console.log("wtf");
         }
