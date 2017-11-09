@@ -770,5 +770,65 @@
         assert.equal( view1.$el.text(), "1" );
     });
 
+    QUnit.test("setOptions on live render", function(assert) {
+        var views = [];
+
+        var X = Backbone.View.extend("X", {
+            template: `<%- options.x %>`,
+            options: {
+                x: Number
+            },
+
+            initialize: function() {
+                views.push( this );
+            }
+        });
+
+        var Y = Backbone.View.extend("Y", {
+            template: `<%- options.y %>`,
+            options: {
+                y: Number
+            },
+
+            initialize: function() {
+                views.push( this );
+            }
+        });
+
+        var ParentView = Backbone.View.extend({
+            template: `<%
+                X({x: 1});
+
+                if ( flag ) {
+                    X({x: 2});
+                } else {
+                    Y({y: 1});
+                }
+
+                Y({y: 2});
+            %>`,
+            Views: [X, Y]
+        });
+
+        var parentView = new ParentView({ model: {flag: true} });
+        parentView.render();
+
+        assert.ok( views[0] instanceof X );
+        assert.ok( views[1] instanceof X );
+        assert.ok( views[2] instanceof Y );
+
+        parentView.model.set("flag", false);
+
+        views[1].trigger("test");
+
+        assert.ok( views[3] instanceof Y );
+
+        parentView.model.set("flag", true);
+
+        assert.ok( views[4] instanceof X );
+
+        assert.ok( views.length === 5 );
+    });
+
 
 })(QUnit);
