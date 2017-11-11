@@ -770,7 +770,7 @@
         assert.equal( view1.$el.text(), "1" );
     });
 
-    QUnit.test("setOptions on live render", function(assert) {
+    QUnit.test("create/remove if condition", function(assert) {
         var views = [];
 
         var X = Backbone.View.extend("X", {
@@ -828,6 +828,66 @@
         assert.ok( views[4] instanceof X );
 
         assert.ok( views.length === 5 );
+    });
+    
+    QUnit.test("cycle sub views", function(assert) {
+        var ParentView = Backbone.View.extend({
+            Views: {
+                Child: Backbone.View.extend({
+                    tagName: "li",
+                    template: "<%- name %>"
+                })
+            },
+            template: `<%
+                var collection = this.collection;
+                for (var i=0, n=collection.length; i<n; i++) {
+                    Child( collection.at(i) );
+                }
+            %>`
+        });
+        
+        var collection = new Backbone.Collection();
+        var view = new ParentView(collection);
+        view.render();
+        
+        assert.equal( view.$("li").length, 0 );
+        collection.add({
+            name: "Bob"
+        });
+        
+        assert.equal( view.$("li").length, 1 );
+        assert.equal( view.$("li").eq(0).text(), "Bob" );
+        
+        collection.add({
+            name: "Jack"
+        });
+        
+        assert.equal( view.$("li").length, 2 );
+        assert.equal( view.$("li").eq(0).text(), "Bob" );
+        assert.equal( view.$("li").eq(1).text(), "Jack" );
+        
+        collection.remove( collection.at(0) );
+        
+        assert.equal( view.$("li").length, 1 );
+        assert.equal( view.$("li").eq(0).text(), "Jack" );
+        
+        collection.add({
+            name: "Denis"
+        }, {
+            at: 0
+        });
+        
+        assert.equal( view.$("li").length, 2 );
+        assert.equal( view.$("li").eq(0).text(), "Denis" );
+        assert.equal( view.$("li").eq(1).text(), "Jack" );
+        
+        collection.at(0).destroy();
+        
+        assert.equal( view.$("li").length, 1 );
+        assert.equal( view.$("li").eq(0).text(), "Jack" );
+        
+        collection.reset();
+        assert.equal( view.$("li").length, 0 );
     });
 
 

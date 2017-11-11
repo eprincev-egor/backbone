@@ -21,7 +21,7 @@ var Backbone = require("./main"),
 var View = function View(options) {
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments);
-
+    
     this.setOptions(options);
 
     this.ui = {};
@@ -32,12 +32,14 @@ var View = function View(options) {
     this._events = _.extend({}, this.events);
     this._attachedEvents = {};
 
-    if (!options || options.createElement !== false) {
+    if (!this.options || this.options.createElement !== false) {
         this._ensureElement();
         if ( options ) {
-            delete options.createElement;  // need for _.isEqual
+            delete this.options.createElement;  // need for _.isEqual
         }
     }
+    
+    //this._liveRenderDebounced = _.debounce(this._liveRenderDebounced.bind(this), 5);
 
     this.initialize.apply(this, arguments);
 };
@@ -114,6 +116,17 @@ _.extend(View.prototype, Events, {
     initialize: function() {},
 
     _validateOptions: function(options) {
+        if ( options instanceof Backbone.Model ) {
+            options = {
+                model: options
+            };
+        }
+        else if ( options instanceof Backbone.Collection ) {
+            options = {
+                collection: options
+            };
+        }
+        
         if ( !this._options ) {
             return options;
         }
@@ -306,14 +319,18 @@ _.extend(View.prototype, Events, {
         if (!this._rendered) {
             return;
         }
-
+        
         if (!this.vdom) {
             this.vdom = new Vdom(this);
             // only first live render
             this.vdom.build(this.el, this._templateCache);
             delete this._templateCache;
         }
-
+        
+        this._liveRenderDebounced();
+    },
+    
+    _liveRenderDebounced: function() {
         this._viewOptionsByCid = {};
         var newHTML = this.template();
         this.vdom.update(this.el, newHTML);
@@ -426,7 +443,7 @@ _.extend(View.prototype, Events, {
             var uiSelector = this._ui[uikey];
 
             if (/^\$/.test(uikey)) {
-                this.ui[uikey] = this.$(uiSelector);
+                this.ui[uikey] = this.$(uiSelector).eq(0);
             } else {
                 this.ui[uikey] = this.el.querySelector(uiSelector);
             }
@@ -894,8 +911,8 @@ View._beforeExtend = function(className, protoProps, staticProps) {
             "<%" +
             " var scope = new this.TemplateScope(this, print);" +
             " scope._getHTML = function() {return __p;}; " +
-            " var _modelAttribures = (this.model || {attributes: {}}).attributes || {}, options = this.options; " +
-            "with(_modelAttribures) {"+
+            " var model = this.model, collection = this.collection, options = this.options; " +
+            "with((this.model || {attributes: {}}).attributes || {}) {"+
             " if ( !this.vdom ) { " +
             " this._lastTemplateIndex = 0; " +
             " this._templateCache = ''; " +
