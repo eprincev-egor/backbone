@@ -20,7 +20,7 @@ const Model = Backbone.Model.extend({
         return data;
     },
     updateData(mod = 10) {
-        // Just assigning setting each tenth this.data doesn't cause a redraw, the following does:
+        // Just assigning setting each tenth data doesn't cause a redraw, the following does:
         var newData = [],
             data = this.get("data");
         for (let i = 0; i < data.length; i ++) {
@@ -80,8 +80,9 @@ const Model = Backbone.Model.extend({
         this.set("selected", id);
     },
     removeRow(id) {
-        var idx = this.data.findIndex(row => row.id==id);
-        this.get("data").splice(idx, 1);
+        var data = this.get("data");
+        var idx = data.findIndex(row => row.id==id);
+        data.splice(idx, 1);
         this.trigger("change");
     }
 });
