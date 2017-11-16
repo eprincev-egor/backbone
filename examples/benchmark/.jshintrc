@@ -1,0 +1,14 @@
+{
+    "esversion": 7,
+    "strict": "global",
+    "browser": true,
+    "futurehostile": true,
+    "globals": {
+        "__dirname": true,
+        "module": true,
+        "require": true,
+        "console": true,
+        "_": true,
+        "Backbone": true
+    }
+}
