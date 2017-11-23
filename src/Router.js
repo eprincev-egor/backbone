@@ -24,7 +24,7 @@ var Router = function(options) {
 var optionalParam = /\((.*?)\)/g;
 var namedParam = /(\(\?)?:\w+/g;
 var splatParam = /\*\w+/g;
-var escapeRegExp = /[-{}[]+?.,\\\^$|#\s]/g;
+var escapeRegExp = /[-{}[\]+?.,\\^$|#\s]/g;
 
 // Set up all inheritable **Backbone.Router** properties and methods.
 _.extend(Router.prototype, Events, {
@@ -64,7 +64,7 @@ _.extend(Router.prototype, Events, {
 
     // Execute a route handler with the provided parameters.  This is an
     // excellent place to do pre-route setup or post-route cleanup.
-    execute: function(callback, args/*,  name */) {
+    execute: function(callback, args/*, name*/) {
         if (callback) callback.apply(this, args);
     },
 
