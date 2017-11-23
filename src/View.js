@@ -479,9 +479,10 @@ _.extend(View.prototype, Events, {
                     inputEl.checked = false;
                 }
             } else {
-                if (value != null) {
-                    inputEl.value = value;
+                if ( value == null ) {
+                    value = "";
                 }
+                inputEl.value = value;
             }
         }, this);
     },

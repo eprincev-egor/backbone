@@ -1,10 +1,7 @@
 (function(QUnit) {
     "use strict";
 
-    var view;
-
-    QUnit.module('Backbone.Vdom');
-
+    QUnit.module("Backbone.Vdom");
 
     QUnit.test("render #test1 with model(name: '<test>')", function(assert) {
         assert.expect(2);
@@ -381,7 +378,7 @@
                 this.collection.remove(model);
             },
 
-            onClickAdd: function(e) {
+            onClickAdd: function() {
                 var newName = this.model.get("newName").trim();
 
                 if (!newName) {
@@ -774,7 +771,7 @@
         var views = [];
 
         var X = Backbone.View.extend("X", {
-            template: `<%- options.x %>`,
+            template: "<%- options.x %>",
             options: {
                 x: Number
             },
@@ -785,7 +782,7 @@
         });
 
         var Y = Backbone.View.extend("Y", {
-            template: `<%- options.y %>`,
+            template: "<%- options.y %>",
             options: {
                 y: Number
             },
@@ -829,7 +826,7 @@
 
         assert.ok( views.length === 5 );
     });
-    
+
     QUnit.test("cycle sub views", function(assert) {
         var ParentView = Backbone.View.extend({
             Views: {
@@ -845,49 +842,80 @@
                 }
             %>`
         });
-        
+
         var collection = new Backbone.Collection();
         var view = new ParentView(collection);
         view.render();
-        
+
         assert.equal( view.$("li").length, 0 );
         collection.add({
             name: "Bob"
         });
-        
+
         assert.equal( view.$("li").length, 1 );
         assert.equal( view.$("li").eq(0).text(), "Bob" );
-        
+
         collection.add({
             name: "Jack"
         });
-        
+
         assert.equal( view.$("li").length, 2 );
         assert.equal( view.$("li").eq(0).text(), "Bob" );
         assert.equal( view.$("li").eq(1).text(), "Jack" );
-        
+
         collection.remove( collection.at(0) );
-        
+
         assert.equal( view.$("li").length, 1 );
         assert.equal( view.$("li").eq(0).text(), "Jack" );
-        
+
         collection.add({
             name: "Denis"
         }, {
             at: 0
         });
-        
+
         assert.equal( view.$("li").length, 2 );
         assert.equal( view.$("li").eq(0).text(), "Denis" );
         assert.equal( view.$("li").eq(1).text(), "Jack" );
-        
+
         collection.at(0).destroy();
-        
+
         assert.equal( view.$("li").length, 1 );
         assert.equal( view.$("li").eq(0).text(), "Jack" );
-        
+
         collection.reset();
         assert.equal( view.$("li").length, 0 );
+    });
+
+    QUnit.test("model.set('text', null) and render null val", function(assert) {
+        var SearchBar = Backbone.View.extend("SearchBar", {
+            template: `<input placeholder="search" <%= value(model, "text") %>/>
+            <button>clear</button>`,
+
+            model: {
+                text: ""
+            },
+
+            events: {
+                "click button": "onClickClear"
+            },
+
+            onClickClear: function() {
+                this.model.set("text", null);
+            }
+        });
+
+        var view = new SearchBar();
+        view.render();
+
+        assert.ok( view.$("input").length == 1 );
+        assert.ok( view.$("input").val() == "" );
+
+        view.model.set("text", "xxx");
+        assert.ok( view.$("input").val() == "xxx" );
+
+        view.model.set("text", null);
+        assert.ok( view.$("input").val() == "" );
     });
 
 
