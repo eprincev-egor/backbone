@@ -26,7 +26,7 @@ var Model = function(attributes, options) {
     this.attributes = {};
     if (options.collection) this.collection = options.collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
-    var defaults = _.result(this, 'defaults');
+    var defaults = _.result(this, "defaults");
     attrs = _.defaults(_.extend({}, defaults, attrs), defaults);
     this.set(attrs, options);
     this.changed = {};
@@ -44,11 +44,11 @@ _.extend(Model.prototype, Events, {
 
     // The default name for the JSON `id` attribute is `"id"`. MongoDB and
     // CouchDB users may want to set this to `"_id"`.
-    idAttribute: 'id',
+    idAttribute: "id",
 
     // The prefix is used to create the client id which is used to identify models locally.
     // You may want to override this if you're experiencing name clashes with model ids.
-    cidPrefix: 'c',
+    cidPrefix: "c",
 
     // preinitialize is an empty function by default. You can override it with a function
     // or object.  preinitialize will run before any instantiation logic is run in the Model.
@@ -59,7 +59,7 @@ _.extend(Model.prototype, Events, {
     initialize: function() {},
 
     // Return a copy of the model's `attributes` object.
-    toJSON: function(options) {
+    toJSON: function() {
         return _.clone(this.attributes);
     },
 
@@ -98,7 +98,7 @@ _.extend(Model.prototype, Events, {
 
         // Handle both `"key", value` and `{key: value}` -style arguments.
         var attrs;
-        if (typeof key === 'object') {
+        if (typeof key === "object") {
             attrs = key;
             options = val;
         } else {
@@ -152,7 +152,7 @@ _.extend(Model.prototype, Events, {
         if (!silent) {
             if (changes.length) this._pending = options;
             for (var i = 0; i < changes.length; i++) {
-                this.trigger('change:' + changes[i], this, current[changes[i]], options);
+                this.trigger("change:" + changes[i], this, current[changes[i]], options);
             }
         }
 
@@ -163,7 +163,7 @@ _.extend(Model.prototype, Events, {
             while (this._pending) {
                 options = this._pending;
                 this._pending = false;
-                this.trigger('change', this, options);
+                this.trigger("change", this, options);
             }
         }
         this._pending = false;
@@ -240,10 +240,10 @@ _.extend(Model.prototype, Events, {
             var serverAttrs = options.parse ? model.parse(resp, options) : resp;
             if (!model.set(serverAttrs, options)) return false;
             if (success) success.call(options.context, model, resp, options);
-            model.trigger('sync', model, resp, options);
+            model.trigger("sync", model, resp, options);
         };
         wrapError(this, options);
-        return this.sync('read', this, options);
+        return this.sync("read", this, options);
     },
 
     // Set a hash of model attributes, and sync the model to the server.
@@ -252,7 +252,7 @@ _.extend(Model.prototype, Events, {
     save: function(key, val, options) {
         // Handle both `"key", value` and `{key: value}` -style arguments.
         var attrs;
-        if (key == null || typeof key === 'object') {
+        if (key == null || typeof key === "object") {
             attrs = key;
             options = val;
         } else {
@@ -286,15 +286,15 @@ _.extend(Model.prototype, Events, {
             if (wait) serverAttrs = _.extend({}, attrs, serverAttrs);
             if (serverAttrs && !model.set(serverAttrs, options)) return false;
             if (success) success.call(options.context, model, resp, options);
-            model.trigger('sync', model, resp, options);
+            model.trigger("sync", model, resp, options);
         };
         wrapError(this, options);
 
         // Set temporary attributes if `{wait: true}` to properly find new ids.
         if (attrs && wait) this.attributes = _.extend({}, attributes, attrs);
 
-        var method = this.isNew() ? 'create' : (options.patch ? 'patch' : 'update');
-        if (method === 'patch' && !options.attrs) options.attrs = attrs;
+        var method = this.isNew() ? "create" : (options.patch ? "patch" : "update");
+        if (method === "patch" && !options.attrs) options.attrs = attrs;
         var xhr = this.sync(method, this, options);
 
         // Restore attributes.
@@ -314,13 +314,13 @@ _.extend(Model.prototype, Events, {
 
         var destroy = function() {
             model.stopListening();
-            model.trigger('destroy', model, model.collection, options);
+            model.trigger("destroy", model, model.collection, options);
         };
 
         options.success = function(resp) {
             if (wait) destroy();
             if (success) success.call(options.context, model, resp, options);
-            if (!model.isNew()) model.trigger('sync', model, resp, options);
+            if (!model.isNew()) model.trigger("sync", model, resp, options);
         };
 
         var xhr = false;
@@ -328,7 +328,7 @@ _.extend(Model.prototype, Events, {
             _.defer(options.success);
         } else {
             wrapError(this, options);
-            xhr = this.sync('delete', this, options);
+            xhr = this.sync("delete", this, options);
         }
         if (!wait) destroy();
         return xhr;
@@ -339,17 +339,17 @@ _.extend(Model.prototype, Events, {
     // that will be called.
     url: function() {
         var base =
-            _.result(this, 'urlRoot') ||
-            _.result(this.collection, 'url') ||
+            _.result(this, "urlRoot") ||
+            _.result(this.collection, "url") ||
             urlError();
         if (this.isNew()) return base;
         var id = this.get(this.idAttribute);
-        return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
+        return base.replace(/[^/]$/, "$&/") + encodeURIComponent(id);
     },
 
     // **parse** converts a response into the hash of attributes to be `set` on
     // the model. The default implementation is just to pass the response along.
-    parse: function(resp, options) {
+    parse: function(resp/*, options */) {
         return resp;
     },
 
@@ -377,7 +377,7 @@ _.extend(Model.prototype, Events, {
         attrs = _.extend({}, this.attributes, attrs);
         var error = this.validationError = this.validate(attrs, options) || null;
         if (!error) return true;
-        this.trigger('invalid', this, error, _.extend(options, {
+        this.trigger("invalid", this, error, _.extend(options, {
             validationError: error
         }));
         return false;

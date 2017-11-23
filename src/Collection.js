@@ -106,7 +106,7 @@ _.extend(Collection.prototype, Events, {
                 merged: [],
                 removed: removed
             };
-            this.trigger('update', this, options);
+            this.trigger("update", this, options);
         }
         return singular ? removed[0] : removed;
     },
@@ -215,16 +215,16 @@ _.extend(Collection.prototype, Events, {
             for (i = 0; i < toAdd.length; i++) {
                 if (at != null) options.index = at + i;
                 model = toAdd[i];
-                model.trigger('add', model, this, options);
+                model.trigger("add", model, this, options);
             }
-            if (sort || orderChanged) this.trigger('sort', this, options);
+            if (sort || orderChanged) this.trigger("sort", this, options);
             if (toAdd.length || toRemove.length || toMerge.length) {
                 options.changes = {
                     added: toAdd,
                     removed: toRemove,
                     merged: toMerge
                 };
-                this.trigger('update', this, options);
+                this.trigger("update", this, options);
             }
         }
 
@@ -246,7 +246,7 @@ _.extend(Collection.prototype, Events, {
         models = this.add(models, _.extend({
             silent: true
         }, options));
-        if (!options.silent) this.trigger('reset', this, options);
+        if (!options.silent) this.trigger("reset", this, options);
         return models;
     },
 
@@ -304,7 +304,7 @@ _.extend(Collection.prototype, Events, {
     // Return models with matching attributes. Useful for simple cases of
     // `filter`.
     where: function(attrs, first) {
-        return this[first ? 'find' : 'filter'](attrs);
+        return this[first ? "find" : "filter"](attrs);
     },
 
     // Return the first model with matching attributes. Useful for simple cases
@@ -318,7 +318,7 @@ _.extend(Collection.prototype, Events, {
     // is added.
     sort: function(options) {
         var comparator = this.comparator;
-        if (!comparator) throw new Error('Cannot sort a set without a comparator');
+        if (!comparator) throw new Error("Cannot sort a set without a comparator");
         if (!options) {
             options = {};
         }
@@ -332,13 +332,13 @@ _.extend(Collection.prototype, Events, {
         } else {
             this.models.sort(comparator);
         }
-        if (!options.silent) this.trigger('sort', this, options);
+        if (!options.silent) this.trigger("sort", this, options);
         return this;
     },
 
     // Pluck an attribute from each model in the collection.
     pluck: function(attr) {
-        return this.map(attr + '');
+        return this.map(attr + "");
     },
 
     // Fetch the default set of models for this collection, resetting the
@@ -351,13 +351,13 @@ _.extend(Collection.prototype, Events, {
         var success = options.success;
         var collection = this;
         options.success = function(resp) {
-            var method = options.reset ? 'reset' : 'set';
+            var method = options.reset ? "reset" : "set";
             collection[method](resp, options);
             if (success) success.call(options.context, collection, resp, options);
-            collection.trigger('sync', collection, resp, options);
+            collection.trigger("sync", collection, resp, options);
         };
         wrapError(this, options);
-        return this.sync('read', this, options);
+        return this.sync("read", this, options);
     },
 
     // Create a new instance of a model in this collection. Add the model to the
@@ -381,7 +381,7 @@ _.extend(Collection.prototype, Events, {
 
     // **parse** converts a response into a list of models to be added to the
     // collection. The default implementation is just to pass it through.
-    parse: function(resp, options) {
+    parse: function(resp/*, options */) {
         return resp;
     },
 
@@ -395,7 +395,7 @@ _.extend(Collection.prototype, Events, {
 
     // Define how to uniquely identify models in the collection.
     modelId: function(attrs) {
-        return attrs[this.model.prototype.idAttribute || 'id'];
+        return attrs[this.model.prototype.idAttribute || "id"];
     },
 
     // Get an iterator of all models in this collection.
@@ -432,7 +432,7 @@ _.extend(Collection.prototype, Events, {
         options.collection = this;
         var model = new this.model(attrs, options);
         if (!model.validationError) return model;
-        this.trigger('invalid', this, model.validationError, options);
+        this.trigger("invalid", this, model.validationError, options);
         return false;
     },
 
@@ -455,7 +455,7 @@ _.extend(Collection.prototype, Events, {
 
             if (!options.silent) {
                 options.index = index;
-                model.trigger('remove', model, this, options);
+                model.trigger("remove", model, this, options);
             }
 
             removed.push(model);
@@ -471,20 +471,20 @@ _.extend(Collection.prototype, Events, {
     },
 
     // Internal method to create a model's ties to a collection.
-    _addReference: function(model, options) {
+    _addReference: function(model/*, options*/) {
         this._byId[model.cid] = model;
         var id = this.modelId(model.attributes);
         if (id != null) this._byId[id] = model;
-        model.on('all', this._onModelEvent, this);
+        model.on("all", this._onModelEvent, this);
     },
 
     // Internal method to sever a model's ties to a collection.
-    _removeReference: function(model, options) {
+    _removeReference: function(model/*, options*/) {
         delete this._byId[model.cid];
         var id = this.modelId(model.attributes);
         if (id != null) delete this._byId[id];
         if (this === model.collection) delete model.collection;
-        model.off('all', this._onModelEvent, this);
+        model.off("all", this._onModelEvent, this);
     },
 
     // Internal method called every time a model in the set fires an event.
@@ -493,9 +493,9 @@ _.extend(Collection.prototype, Events, {
     // in other collections are ignored.
     _onModelEvent: function(event, model, collection, options) {
         if (model) {
-            if ((event === 'add' || event === 'remove') && collection !== this) return;
-            if (event === 'destroy') this.remove(model, options);
-            if (event === 'change') {
+            if ((event === "add" || event === "remove") && collection !== this) return;
+            if (event === "destroy") this.remove(model, options);
+            if (event === "change") {
                 var prevId = this.modelId(model.previousAttributes());
                 var id = this.modelId(model.attributes);
                 if (prevId !== id) {
@@ -512,7 +512,7 @@ _.extend(Collection.prototype, Events, {
 // Defining an @@iterator method implements JavaScript's Iterable protocol.
 // In modern ES2015 browsers, this value is found at Symbol.iterator.
 /* global Symbol */
-var $$iterator = typeof Symbol === 'function' && Symbol.iterator;
+var $$iterator = typeof Symbol === "function" && Symbol.iterator;
 if ($$iterator) {
     Collection.prototype[$$iterator] = Collection.prototype.values;
 }

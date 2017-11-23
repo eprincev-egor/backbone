@@ -150,8 +150,8 @@ var modelMethods = {
 // Mix in each Underscore method as a proxy to `Collection#models`.
 
 _.each([
-    [Collection, collectionMethods, 'models'],
-    [Model, modelMethods, 'attributes']
+    [Collection, collectionMethods, "models"],
+    [Model, modelMethods, "attributes"]
 ], function(config) {
     var Base = config[0],
         methods = config[1],
@@ -206,7 +206,7 @@ var extend = function(className, protoProps, staticProps) {
     // The constructor function for the new subclass is either defined by you
     // (the "constructor" property in your `extend` definition), or defaulted
     // by us to simply call the parent constructor.
-    if (protoProps && _.has(protoProps, 'constructor')) {
+    if (protoProps && _.has(protoProps, "constructor")) {
         child = protoProps.constructor;
     } else {
         // when need debugg memory leaks, you need find object by className

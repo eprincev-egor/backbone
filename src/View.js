@@ -19,9 +19,9 @@ var Backbone = require("./main"),
 // Creating a Backbone.View creates its initial element outside of the DOM,
 // if an existing element is not provided...
 var View = function View(options) {
-    this.cid = _.uniqueId('view');
+    this.cid = _.uniqueId("view");
     this.preinitialize.apply(this, arguments);
-    
+
     this.setOptions(options);
 
     this.ui = {};
@@ -38,7 +38,7 @@ var View = function View(options) {
             delete this.options.createElement;  // need for _.isEqual
         }
     }
-    
+
     //this._liveRenderDebounced = _.debounce(this._liveRenderDebounced.bind(this), 5);
 
     this.initialize.apply(this, arguments);
@@ -51,10 +51,10 @@ var addEventListener,
     removeEventListener;
 if (Backbone.$) {
     addEventListener = function(el, eventName, handler) {
-        $(el).on(eventName, handler);
+        window.$(el).on(eventName, handler);
     };
     removeEventListener = function(el, eventName, handler) {
-        $(el).off(eventName, handler);
+        window.$(el).off(eventName, handler);
     };
 } else {
     if ( window.addEventListener ) {
@@ -89,13 +89,13 @@ var _eventKey2nameAndSelector = function(key) {
 };
 
 // List of view options to be set as properties.
-var viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+var viewOptions = ["model", "collection", "el", "id", "attributes", "className", "tagName", "events"];
 
 // Set up all inheritable **Backbone.View** properties and methods.
 _.extend(View.prototype, Events, {
 
     // The default `tagName` of a View's element is `"div"`.
-    tagName: 'div',
+    tagName: "div",
 
     // jQuery delegate for element lookup, scoped to DOM elements within the
     // current view. This should be preferred to global lookups where possible.
@@ -126,7 +126,7 @@ _.extend(View.prototype, Events, {
                 collection: options
             };
         }
-        
+
         if ( !this._options ) {
             return options;
         }
@@ -319,17 +319,17 @@ _.extend(View.prototype, Events, {
         if (!this._rendered) {
             return;
         }
-        
+
         if (!this.vdom) {
             this.vdom = new Vdom(this);
             // only first live render
             this.vdom.build(this.el, this._templateCache);
             delete this._templateCache;
         }
-        
+
         this._liveRenderDebounced();
     },
-    
+
     _liveRenderDebounced: function() {
         this._viewOptionsByCid = {};
         var newHTML = this.template();
@@ -399,7 +399,7 @@ _.extend(View.prototype, Events, {
         }
         this._templateTmpEvents[tmpId] = [model, key];
 
-        return ' __tmp-id="' + tmpId + '" ';
+        return " __tmp-id=\"" + tmpId + "\" ";
     },
 
     _templateChildView: function(print, getHTML, options) {
@@ -509,8 +509,6 @@ _.extend(View.prototype, Events, {
     // Change the view's element (`this.el` property) and re-delegate the
     // view's events on the new element.
     setElement: function(el) {
-        var key;
-
         // remove old listeners
         this._dettachEvents();
         this._events = _.extend({}, this.events);
@@ -520,7 +518,7 @@ _.extend(View.prototype, Events, {
                 this.$el = el;
                 this.el = this.$el[0];
             } else {
-                this.$el = $(el);
+                this.$el = window.$(el);
                 this.el = this.$el[0];
             }
 
@@ -582,7 +580,7 @@ _.extend(View.prototype, Events, {
     // Omitting the selector binds the event to `this.el`.
     delegateEvents: function(events) {
         if (!events) {
-            events = _.result(this, 'events');
+            events = _.result(this, "events");
         }
         if (!events) return this;
         this.undelegateEvents();
@@ -624,8 +622,8 @@ _.extend(View.prototype, Events, {
 
     // A finer-grained `undelegateEvents` for removing a single delegated event.
     // `selector` and `listener` are both optional.
-    undelegate: function(eventName, selector, listener) {
-        var tmp, key, eventSelector;
+    undelegate: function(eventName, selector/*, listener */) {
+        var tmp, eventSelector;
 
         if (selector) {
             tmp = _eventKey2nameAndSelector(eventName + " " + selector);
@@ -767,18 +765,18 @@ _.extend(View.prototype, Events, {
     // an element from the `id`, `className` and `tagName` properties.
     _ensureElement: function() {
         if (!this.el) {
-            var attrs = _.extend({}, _.result(this, 'attributes'));
-            if (this.id) attrs.id = _.result(this, 'id');
-            if (this.className) attrs['class'] = this._getClassName();
-            this.setElement(this._createElement(_.result(this, 'tagName')));
+            var attrs = _.extend({}, _.result(this, "attributes"));
+            if (this.id) attrs.id = _.result(this, "id");
+            if (this.className) attrs["class"] = this._getClassName();
+            this.setElement(this._createElement(_.result(this, "tagName")));
             this._setAttributes(attrs);
         } else {
-            this.setElement(_.result(this, 'el'));
+            this.setElement(_.result(this, "el"));
         }
     },
 
     _getClassName: function() {
-        var className = _.result(this, 'className');
+        var className = _.result(this, "className");
 
         if ( _.isArray(className) ) {
             className = className.join(" ");
@@ -789,15 +787,15 @@ _.extend(View.prototype, Events, {
 
     // called by parent
     _outerHTML: function() {
-        var tagName = _.result(this, 'tagName'),
-            attrs = _.extend({}, _.result(this, 'attributes')),
+        var tagName = _.result(this, "tagName"),
+            attrs = _.extend({}, _.result(this, "attributes")),
             open,
             content = "",
             attrsHTML = "",
             close = "</" + tagName + ">";
 
-        if (this.id) attrs.id = _.result(this, 'id');
-        if (this.className) attrs['class'] = this._getClassName();
+        if (this.id) attrs.id = _.result(this, "id");
+        if (this.className) attrs["class"] = this._getClassName();
 
         for (var key in attrs) {
             attrsHTML += key + "='"+ _.escape( attrs[key] ) +"'";
@@ -846,7 +844,7 @@ _.extend(TemplateScope.prototype, {
     //
     // set events for listening:
     // <%= value( state, key ).on("change blur") %>
-    value: function(model, key) {
+    value: function(/*model, key*/) {
         return this.view._templateValue.apply(this.view, arguments);
     }
 });
@@ -855,7 +853,7 @@ View.TemplateScope = TemplateScope;
 
 View.prototype.TemplateScope = TemplateScope;
 
-View._beforeExtend = function(className, protoProps, staticProps) {
+View._beforeExtend = function(className, protoProps) {
     if ( protoProps.options ) {
         protoProps._options = protoProps.options;
         delete protoProps.options;
@@ -904,7 +902,9 @@ View._beforeExtend = function(className, protoProps, staticProps) {
             if (templateEl) {
                 templateString = templateEl.innerHTML;
             }
-        } catch (err) {}
+        } catch (err) {
+            console.log(err);
+        }
 
         // это позволяет использовать элементы внутри элементов
         templateString = (
@@ -932,7 +932,6 @@ View._beforeExtend = function(className, protoProps, staticProps) {
 
 View._afterExtend = function(child) {
     var proto = child.prototype;
-    var parent = this;
 
     // потомки наследуют scope родителей
     proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");

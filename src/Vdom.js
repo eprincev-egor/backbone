@@ -1,7 +1,6 @@
 "use strict";
 
 var Backbone = require("./main"),
-    Events = require("./Events"),
     HTMLParser = require("./HTMLParser"),
     _ = Backbone._;
 
@@ -47,8 +46,7 @@ _.extend(Vdom.prototype, {
         if (previous === vnode) {
             return false; // By contract, VNode objects may not be modified anymore after passing them to maquette
         }
-        var updated = false;
-        if (vnode.nodeName === '#text') {
+        if (vnode.nodeName === "#text") {
             if (vnode.value != previous.value) {
                 domNode.textContent = _.unescape(vnode.value);
                 vnode.domNode = domNode;
@@ -61,8 +59,8 @@ _.extend(Vdom.prototype, {
             this.updateView( previous, vnode );
         }
         else {
-            updated = this.updateChildren(domNode, previous.childNodes, vnode.childNodes) || updated;
-            updated = this.updateProperties(domNode, vnode, previous) || updated;
+            this.updateChildren(domNode, previous.childNodes, vnode.childNodes);
+            this.updateProperties(domNode, vnode, previous);
             vnode.domNode = previous.domNode;
         }
 
@@ -83,7 +81,7 @@ _.extend(Vdom.prototype, {
         }
     },
 
-    updateChildren: function(domNode, oldChildren, newChildren, projectionOptions) {
+    updateChildren: function(domNode, oldChildren, newChildren) {
         if (oldChildren === newChildren) {
             return false;
         }
@@ -131,7 +129,7 @@ _.extend(Vdom.prototype, {
     },
 
     findIndexOfChild: function(children, sameAs, start) {
-        if (sameAs.nodeName !== '#text') {
+        if (sameAs.nodeName !== "#text") {
             // Never scan for text-nodes
             for (var i = start; i < children.length; i++) {
                 if (this.same(children[i], sameAs)) {
@@ -154,10 +152,9 @@ _.extend(Vdom.prototype, {
     },
 
     createDom: function(vnode, parentNode, insertBefore) {
-        var domNode, i, c, start = 0,
-            type, found;
+        var domNode;
         var doc = parentNode.ownerDocument;
-        if (vnode.nodeName === '#text') {
+        if (vnode.nodeName === "#text") {
             domNode = vnode.domNode = doc.createTextNode(_.unescape(vnode.value));
             if (insertBefore !== undefined) {
                 parentNode.insertBefore(domNode, insertBefore);

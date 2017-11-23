@@ -30,9 +30,9 @@ var _listening;
 var eventsApi = function(iteratee, events, name, callback, opts) {
     var i = 0,
         names;
-    if (name && typeof name === 'object') {
+    if (name && typeof name === "object") {
         // Handle event maps.
-        if (callback !== void 0 && 'context' in opts && opts.context === void 0) opts.context = callback;
+        if (callback !== void 0 && "context" in opts && opts.context === void 0) opts.context = callback;
         for (names = _.keys(name); i < names.length; i++) {
             events = eventsApi(iteratee, events, names[i], name[names[i]], opts);
         }
@@ -73,7 +73,7 @@ Events.on = function(name, callback, context) {
 // for easier unbinding later.
 Events.listenTo = function(obj, name, callback) {
     if (!obj) return this;
-    var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+    var id = obj._listenId || (obj._listenId = _.uniqueId("l"));
     var listeningTo = this._listeningTo || (this._listeningTo = {});
     _listening = listeningTo[id];
     var listening = _listening;
@@ -82,7 +82,7 @@ Events.listenTo = function(obj, name, callback) {
     // Setup the necessary references to track the listening callbacks.
     if (!listening) {
         if (!this._listenId) {
-            this._listenId = _.uniqueId('l');
+            this._listenId = _.uniqueId("l");
         }
         listening = _listening = listeningTo[id] = new Listening(this, obj);
     }
@@ -262,7 +262,7 @@ var offApi = function(events, name, callback, options) {
 Events.once = function(name, callback, context) {
     // Map the event into a `{event: once}` object.
     var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
-    if (typeof name === 'string' && context == null) callback = void 0;
+    if (typeof name === "string" && context == null) callback = void 0;
     return this.on(events, callback, context);
 };
 

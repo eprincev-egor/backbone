@@ -40,7 +40,7 @@ _.extend(HTMLParser.prototype, {
     },
 
     readQuotes: function(q) {
-        var subStr = '';
+        var subStr = "";
         this.i++;
         for (var n = this.n, str = this.str, s; this.i < n; this.i++) {
             s = str[this.i];
@@ -58,7 +58,7 @@ _.extend(HTMLParser.prototype, {
 
     isQuotes: function() {
         var symb = this.str[this.i];
-        return symb == "'" || symb == '"';
+        return symb == "'" || symb == "\"";
     },
 
     parseAttrs: function() {
@@ -75,7 +75,7 @@ _.extend(HTMLParser.prototype, {
             } else if (/\s/.test(symb)) {
                 this.skipSpace();
             } else {
-                key = this.readTo(/[\s\=\/>]/).toLowerCase();
+                key = this.readTo(/[\s=/>]/).toLowerCase();
                 var attr = {
                     name: key
                 };
@@ -90,7 +90,7 @@ _.extend(HTMLParser.prototype, {
                     if (this.isQuotes()) {
                         attr.value = this.readQuotes(this.str[this.i]);
                     } else {
-                        attr.value = this.readTo(/[\s\/>]/);
+                        attr.value = this.readTo(/[\s/>]/);
                     }
                     if ( key == "cid" ) {
                         attrs.cid = attr.value;
@@ -113,7 +113,7 @@ _.extend(HTMLParser.prototype, {
         this.skipSpace();
 
         var parent = {
-            nodeName: this.readTo(/[\s>\/]/),
+            nodeName: this.readTo(/[\s>/]/),
             attrs: this.parseAttrs(),
             childNodes: []
         };
@@ -156,7 +156,7 @@ _.extend(HTMLParser.prototype, {
         while (this.isNotEnd()) {
             symb = this.str[this.i];
 
-            if (symb == '<') {
+            if (symb == "<") {
                 this.i++;
                 this.skipSpace();
                 symb = this.str[this.i];
@@ -212,13 +212,12 @@ _.extend(HTMLParser.prototype, {
     parse: function() {
         var elements = [],
             symb,
-            tagName,
             el;
 
         while (this.isNotEnd()) {
             symb = this.str[this.i];
 
-            if (symb == '<') {
+            if (symb == "<") {
                 el = this.parseTag();
                 elements.push(el);
             } else {

@@ -24,7 +24,7 @@ var Router = function(options) {
 var optionalParam = /\((.*?)\)/g;
 var namedParam = /(\(\?)?:\w+/g;
 var splatParam = /\*\w+/g;
-var escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+var escapeRegExp = /[-{}[]+?.,\\\^$|#\s]/g;
 
 // Set up all inheritable **Backbone.Router** properties and methods.
 _.extend(Router.prototype, Events, {
@@ -47,16 +47,16 @@ _.extend(Router.prototype, Events, {
         if (!_.isRegExp(route)) route = this._routeToRegExp(route);
         if (_.isFunction(name)) {
             callback = name;
-            name = '';
+            name = "";
         }
         if (!callback) callback = this[name];
         var router = this;
         Backbone.history.route(route, function(fragment) {
             var args = router._extractParameters(route, fragment);
             if (router.execute(callback, args, name) !== false) {
-                router.trigger.apply(router, ['route:' + name].concat(args));
-                router.trigger('route', name, args);
-                Backbone.history.trigger('route', router, name, args);
+                router.trigger.apply(router, ["route:" + name].concat(args));
+                router.trigger("route", name, args);
+                Backbone.history.trigger("route", router, name, args);
             }
         });
         return this;
@@ -64,7 +64,7 @@ _.extend(Router.prototype, Events, {
 
     // Execute a route handler with the provided parameters.  This is an
     // excellent place to do pre-route setup or post-route cleanup.
-    execute: function(callback, args, name) {
+    execute: function(callback, args/*,  name */) {
         if (callback) callback.apply(this, args);
     },
 
@@ -79,7 +79,7 @@ _.extend(Router.prototype, Events, {
     // routes can be defined at the bottom of the route map.
     _bindRoutes: function() {
         if (!this.routes) return;
-        this.routes = _.result(this, 'routes');
+        this.routes = _.result(this, "routes");
         var route, routes = _.keys(this.routes);
         while ((route = routes.pop()) != null) {
             this.route(route, this.routes[route]);
@@ -89,13 +89,13 @@ _.extend(Router.prototype, Events, {
     // Convert a route string into a regular expression, suitable for matching
     // against the current location hash.
     _routeToRegExp: function(route) {
-        route = route.replace(escapeRegExp, '\\$&')
-            .replace(optionalParam, '(?:$1)?')
+        route = route.replace(escapeRegExp, "\\$&")
+            .replace(optionalParam, "(?:$1)?")
             .replace(namedParam, function(match, optional) {
-                return optional ? match : '([^/?]+)';
+                return optional ? match : "([^/?]+)";
             })
-            .replace(splatParam, '([^?]*?)');
-        return new RegExp('^' + route + '(?:\\?([\\s\\S]*))?$');
+            .replace(splatParam, "([^?]*?)");
+        return new RegExp("^" + route + "(?:\\?([\\s\\S]*))?$");
     },
 
     // Given a route, and a URL fragment that it matches, return the array of

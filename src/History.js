@@ -17,14 +17,14 @@ var History = function History() {
     this.checkUrl = _.bind(this.checkUrl, this);
 
     // Ensure that `History` can be used outside of the browser.
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         this.location = window.location;
         this.history = window.history;
     }
 };
 
 // Cached regex for stripping a leading hash/slash and trailing space.
-var routeStripper = /^[#\/]|\s+$/g;
+var routeStripper = /^[#/]|\s+$/g;
 
 // Cached regex for stripping leading and trailing slashes.
 var rootStripper = /^\/+|\/+$/g;
@@ -44,14 +44,14 @@ _.extend(History.prototype, Events, {
 
     // Are we at the app root?
     atRoot: function() {
-        var path = this.location.pathname.replace(/[^\/]$/, '$&/');
+        var path = this.location.pathname.replace(/[^/]$/, "$&/");
         return path === this.root && !this.getSearch();
     },
 
     // Does the pathname match the root?
     matchRoot: function() {
         var path = this.decodeFragment(this.location.pathname);
-        var rootPath = path.slice(0, this.root.length - 1) + '/';
+        var rootPath = path.slice(0, this.root.length - 1) + "/";
         return rootPath === this.root;
     },
 
@@ -59,21 +59,21 @@ _.extend(History.prototype, Events, {
     // decoded for comparison. `%25` should not be decoded since it may be part
     // of an encoded parameter.
     decodeFragment: function(fragment) {
-        return decodeURI(fragment.replace(/%25/g, '%2525'));
+        return decodeURI(fragment.replace(/%25/g, "%2525"));
     },
 
     // In IE6, the hash fragment and search params are incorrect if the
     // fragment contains `?`.
     getSearch: function() {
-        var match = this.location.href.replace(/#.*/, '').match(/\?.+/);
-        return match ? match[0] : '';
+        var match = this.location.href.replace(/#.*/, "").match(/\?.+/);
+        return match ? match[0] : "";
     },
 
     // Gets the true hash value. Cannot use location.hash directly due to bug
     // in Firefox where location.hash will always be decoded.
     getHash: function(window) {
         var match = (window || this).location.href.match(/#(.*)$/);
-        return match ? match[1] : '';
+        return match ? match[1] : "";
     },
 
     // Get the pathname and search params, without the root.
@@ -81,7 +81,7 @@ _.extend(History.prototype, Events, {
         var path = this.decodeFragment(
             this.location.pathname + this.getSearch()
         ).slice(this.root.length - 1);
-        return path.charAt(0) === '/' ? path.slice(1) : path;
+        return path.charAt(0) === "/" ? path.slice(1) : path;
     },
 
     // Get the cross-browser normalized URL fragment from the path or hash.
@@ -93,23 +93,23 @@ _.extend(History.prototype, Events, {
                 fragment = this.getHash();
             }
         }
-        return fragment.replace(routeStripper, '');
+        return fragment.replace(routeStripper, "");
     },
 
     // Start the hash change handling, returning `true` if the current URL matches
     // an existing route, and `false` otherwise.
     start: function(options) {
-        if (History.started) throw new Error('Backbone.history has already been started');
+        if (History.started) throw new Error("Backbone.history has already been started");
         History.started = true;
 
         // Figure out the initial configuration. Do we need an iframe?
         // Is pushState desired ... is it available?
         this.options = _.extend({
-            root: '/'
+            root: "/"
         }, this.options, options);
         this.root = this.options.root;
         this._wantsHashChange = this.options.hashChange !== false;
-        this._hasHashChange = 'onhashchange' in window && (document.documentMode === void 0 || document.documentMode > 7);
+        this._hasHashChange = "onhashchange" in window && (document.documentMode === void 0 || document.documentMode > 7);
         this._useHashChange = this._wantsHashChange && this._hasHashChange;
         this._wantsPushState = !!this.options.pushState;
         this._hasPushState = !!(this.history && this.history.pushState);
@@ -117,7 +117,7 @@ _.extend(History.prototype, Events, {
         this.fragment = this.getFragment();
 
         // Normalize root to always include a leading and trailing slash.
-        this.root = ('/' + this.root + '/').replace(rootStripper, '/');
+        this.root = ("/" + this.root + "/").replace(rootStripper, "/");
 
         // Transition from hashChange to pushState or vice versa if both are
         // requested.
@@ -126,8 +126,8 @@ _.extend(History.prototype, Events, {
             // If we've started off with a route from a `pushState`-enabled
             // browser, but we're currently in a browser that doesn't support it...
             if (!this._hasPushState && !this.atRoot()) {
-                var rootPath = this.root.slice(0, -1) || '/';
-                this.location.replace(rootPath + '#' + this.getPath());
+                var rootPath = this.root.slice(0, -1) || "/";
+                this.location.replace(rootPath + "#" + this.getPath());
                 // Return immediately as browser will do redirect to new url
                 return true;
 
@@ -145,29 +145,29 @@ _.extend(History.prototype, Events, {
         // support the `hashchange` event, HTML5 history, or the user wants
         // `hashChange` but not `pushState`.
         if (!this._hasHashChange && this._wantsHashChange && !this._usePushState) {
-            this.iframe = document.createElement('iframe');
-            this.iframe.src = 'javascript:0'; // jshint ignore:line
-            this.iframe.style.display = 'none';
+            this.iframe = document.createElement("iframe");
+            this.iframe.src = "javascript:0"; // jshint ignore:line
+            this.iframe.style.display = "none";
             this.iframe.tabIndex = -1;
             var body = document.body;
             // Using `appendChild` will throw on IE < 9 if the document is not ready.
             var iWindow = body.insertBefore(this.iframe, body.firstChild).contentWindow;
             iWindow.document.open();
             iWindow.document.close();
-            iWindow.location.hash = '#' + this.fragment;
+            iWindow.location.hash = "#" + this.fragment;
         }
 
         // Add a cross-platform `addEventListener` shim for older browsers.
         var addEventListener = window.addEventListener || function(eventName, listener) {
-            return window.attachEvent('on' + eventName, listener);
+            return window.attachEvent("on" + eventName, listener);
         };
 
         // Depending on whether we're using pushState or hashes, and whether
         // 'onhashchange' is supported, determine how we check the URL state.
         if (this._usePushState) {
-            addEventListener('popstate', this.checkUrl, false);
+            addEventListener("popstate", this.checkUrl, false);
         } else if (this._useHashChange && !this.iframe) {
-            addEventListener('hashchange', this.checkUrl, false);
+            addEventListener("hashchange", this.checkUrl, false);
         } else if (this._wantsHashChange) {
             this._checkUrlInterval = setInterval(this.checkUrl, this.interval);
         }
@@ -180,14 +180,14 @@ _.extend(History.prototype, Events, {
     stop: function() {
         // Add a cross-platform `removeEventListener` shim for older browsers.
         var removeEventListener = window.removeEventListener || function(eventName, listener) {
-            return window.detachEvent('on' + eventName, listener);
+            return window.detachEvent("on" + eventName, listener);
         };
 
         // Remove window listeners.
         if (this._usePushState) {
-            removeEventListener('popstate', this.checkUrl, false);
+            removeEventListener("popstate", this.checkUrl, false);
         } else if (this._useHashChange && !this.iframe) {
-            removeEventListener('hashchange', this.checkUrl, false);
+            removeEventListener("hashchange", this.checkUrl, false);
         }
 
         // Clean up the iframe if necessary.
@@ -212,7 +212,7 @@ _.extend(History.prototype, Events, {
 
     // Checks the current URL to see if it has changed, and if it has,
     // calls `loadUrl`, normalizing across the hidden iframe.
-    checkUrl: function(e) {
+    checkUrl: function() {
         var current = this.getFragment();
 
         // If the user pressed the back button, the iframe's hash will have
@@ -255,17 +255,17 @@ _.extend(History.prototype, Events, {
         };
 
         // Normalize the fragment.
-        fragment = this.getFragment(fragment || '');
+        fragment = this.getFragment(fragment || "");
 
         // Don't include a trailing slash on the root.
         var rootPath = this.root;
-        if (fragment === '' || fragment.charAt(0) === '?') {
-            rootPath = rootPath.slice(0, -1) || '/';
+        if (fragment === "" || fragment.charAt(0) === "?") {
+            rootPath = rootPath.slice(0, -1) || "/";
         }
         var url = rootPath + fragment;
 
         // Strip the fragment of the query and hash for matching.
-        fragment = fragment.replace(pathStripper, '');
+        fragment = fragment.replace(pathStripper, "");
 
         // Decode for matching.
         var decodedFragment = this.decodeFragment(fragment);
@@ -275,7 +275,7 @@ _.extend(History.prototype, Events, {
 
         // If pushState is available, we use it to set the fragment as a real URL.
         if (this._usePushState) {
-            this.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, url);
+            this.history[options.replace ? "replaceState" : "pushState"]({}, document.title, url);
 
             // If hash changes haven't been explicitly disabled, update the hash
             // fragment to store history.
@@ -307,11 +307,11 @@ _.extend(History.prototype, Events, {
     // a new one to the browser history.
     _updateHash: function(location, fragment, replace) {
         if (replace) {
-            var href = location.href.replace(/(javascript:|#).*$/, '');
-            location.replace(href + '#' + fragment);
+            var href = location.href.replace(/(javascript:|#).*$/, "");
+            location.replace(href + "#" + fragment);
         } else {
             // Some browsers require that `hash` contains a leading #.
-            location.hash = '#' + fragment;
+            location.hash = "#" + fragment;
         }
     }
 

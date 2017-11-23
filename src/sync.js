@@ -45,23 +45,23 @@ var sync = function sync(method, model, options) {
     // Default JSON-request options.
     var params = {
         type: type,
-        dataType: 'json'
+        dataType: "json"
     };
 
     // Ensure that we have a URL.
     if (!options.url) {
-        params.url = _.result(model, 'url') || urlError();
+        params.url = _.result(model, "url") || urlError();
     }
 
     // Ensure that we have the appropriate request data.
-    if (options.data == null && model && (method === 'create' || method === 'update' || method === 'patch')) {
-        params.contentType = 'application/json';
+    if (options.data == null && model && (method === "create" || method === "update" || method === "patch")) {
+        params.contentType = "application/json";
         params.data = JSON.stringify(options.attrs || model.toJSON(options));
     }
 
     // For older servers, emulate JSON by encoding the request into an HTML-form.
     if (options.emulateJSON) {
-        params.contentType = 'application/x-www-form-urlencoded';
+        params.contentType = "application/x-www-form-urlencoded";
         params.data = params.data ? {
             model: params.data
         } : {};
@@ -69,18 +69,18 @@ var sync = function sync(method, model, options) {
 
     // For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     // And an `X-HTTP-Method-Override` header.
-    if (options.emulateHTTP && (type === 'PUT' || type === 'DELETE' || type === 'PATCH')) {
-        params.type = 'POST';
+    if (options.emulateHTTP && (type === "PUT" || type === "DELETE" || type === "PATCH")) {
+        params.type = "POST";
         if (options.emulateJSON) params.data._method = type;
         var beforeSend = options.beforeSend;
         options.beforeSend = function(xhr) {
-            xhr.setRequestHeader('X-HTTP-Method-Override', type);
+            xhr.setRequestHeader("X-HTTP-Method-Override", type);
             if (beforeSend) return beforeSend.apply(this, arguments);
         };
     }
 
     // Don't process data on a non-GET request.
-    if (params.type !== 'GET' && !options.emulateJSON) {
+    if (params.type !== "GET" && !options.emulateJSON) {
         params.processData = false;
     }
 
@@ -94,17 +94,17 @@ var sync = function sync(method, model, options) {
 
     // Make the request, allowing the user to override any Ajax options.
     var xhr = options.xhr = Backbone.ajax(_.extend(params, options));
-    model.trigger('request', model, xhr, options);
+    model.trigger("request", model, xhr, options);
     return xhr;
 };
 
 // Map from CRUD to HTTP for our default `Backbone.sync` implementation.
 var methodMap = {
-    'create': 'POST',
-    'update': 'PUT',
-    'patch': 'PATCH',
-    'delete': 'DELETE',
-    'read': 'GET'
+    create: "POST",
+    update: "PUT",
+    patch: "PATCH",
+    delete: "DELETE",
+    read: "GET"
 };
 
 // Set the default implementation of `Backbone.ajax` to proxy through to `$`.
