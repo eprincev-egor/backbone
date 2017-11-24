@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Backbone.js tree</title>
+</head>
+
+<body>
+
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../dist/backbone.js"></script>
+
+    <script type="text/template" id="searchbar-template">
+        <input placeholder="search" <%= value(model, "text") %>/>
+        <button>clear</button>
+    </script>
+
+    <script type="text/template" id="list-template">
+        <div id='test'><%
+            SearchBar({
+                className: "top"
+            })
+        %></div><%
+
+        for (var i = 0, n = collection.length; i < n; i++) {
+            var model = collection.at(i);
+
+            %><div><%= this.getHighlightedName( model ) %></div><%
+        }
+    %></script>
+
+    <script type="text/javascript">
+        var SearchBar = Backbone.View.extend("SearchBar", {
+            template: "#searchbar-template",
+
+            model: {
+                text: ""
+            },
+
+            events: {
+                "input input": "onInput",
+                "click button": "onClickClear"
+            },
+
+            onInput: function(e) {
+                this.trigger("input", this.model.get("text"));
+            },
+
+            onClickClear: function() {
+                this.model.set("text", null);
+                this.trigger("input", null);
+            }
+        });
+
+        var List = Backbone.View.extend("List", {
+            template: "#list-template",
+            Views: [SearchBar],
+
+            ui: {
+                searchBar: "#test SearchBar.top"
+            },
+
+            events: {
+                "input @ui.searchBar": "onChangeSearchBar"
+            },
+
+            onChangeSearchBar: function(view, value) {
+                this.searchText = value;
+                this.render();
+            },
+
+            getHighlightedName: function(model) {
+                var name = model.escape("name");
+
+                if ( !this.searchText ) {
+                    return name;
+                }
+
+                return name.replace(_.escape(this.searchText), "<i>$&</i>");
+            }
+        });
+
+        var list = new List({
+            collection: [
+                {
+                    name: "Test 1"
+                },
+                {
+                    name: "Test 2"
+                },
+                {
+                    name: "Test 3"
+                }
+            ]
+        });
+
+        document.body.appendChild(list.el);
+        list.render();
+    </script>
+
+</body>
+
+</html>

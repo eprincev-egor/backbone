@@ -5,7 +5,8 @@
         "semi": ["error", "always"],
         "no-console": "off",
         "comma-dangle": ["error", "never"],
-        "one-var": "off"
+        "one-var": "off",
+        "space-infix-ops": ["error", {"int32Hint": false}]
     },
     "env": {
         "node": true,

@@ -75,12 +75,23 @@ if (Backbone.$) {
 
 }
 
-var _eventKey2nameAndSelector = function(key) {
+var _eventKey2nameAndSelector = function(key, ui) {
     key = key.trim();
     key = key.split(/\s+/);
 
     var type = key[0],
         selector = key.slice(1).join(" ");
+
+    if ( !ui ) {
+        return {
+            type: type,
+            selector: selector
+        };
+    }
+
+    selector = selector.replace(/@ui\s*\.\s*([$\w]+)/, function(str, uiKey) {
+        return ui[uiKey];
+    });
 
     return {
         type: type,
@@ -144,40 +155,40 @@ _.extend(View.prototype, Events, {
 
             if ( settings.type == Number && value != null ) {
                 if ( !_.isNumber(value) ) {
-                    throw new Error("options["+ key +"] must be are Number");
+                    throw new Error("options[" + key + "] must be are Number");
                 }
                 if ( _.isNaN(value) ) {
-                    throw new Error("options["+ key +"] can't be NaN");
+                    throw new Error("options[" + key + "] can't be NaN");
                 }
             }
 
             if ( settings.type == String && value != null ) {
                 if ( !_.isString(value) ) {
-                    throw new Error("options["+ key +"] must be are String");
+                    throw new Error("options[" + key + "] must be are String");
                 }
             }
 
             if ( settings.type == Boolean && value != null ) {
                 if ( !_.isBoolean(value) ) {
-                    throw new Error("options["+ key +"] must be are Boolean");
+                    throw new Error("options[" + key + "] must be are Boolean");
                 }
             }
 
             if ( settings.type == Object && value != null ) {
                 if ( !_.isObject(value) ) {
-                    throw new Error("options["+ key +"] must be are Object");
+                    throw new Error("options[" + key + "] must be are Object");
                 }
             }
 
             if ( settings.type == Array && value != null ) {
                 if ( !_.isArray(value) ) {
-                    throw new Error("options["+ key +"] must be are Array");
+                    throw new Error("options[" + key + "] must be are Array");
                 }
             }
 
             if ( settings.type == Date && value != null ) {
                 if ( !_.isDate(value) ) {
-                    throw new Error("options["+ key +"] must be are Date");
+                    throw new Error("options[" + key + "] must be are Date");
                 }
             }
 
@@ -256,6 +267,7 @@ _.extend(View.prototype, Events, {
             this.children = {};
         }
         this.children[ childView.cid ] = childView;
+        childView._parent = this;
 
         childView.render();
         return childView;
@@ -264,6 +276,7 @@ _.extend(View.prototype, Events, {
     _removeChildView: function(childView) {
         childView.remove();
         delete this.children[ childView.cid ];
+        delete childView.parent;
     },
 
     render: function() {
@@ -383,6 +396,10 @@ _.extend(View.prototype, Events, {
             model = this.model;
         }
 
+        if ( !_.isObject(model) ) {
+            throw new Error("undefined model");
+        }
+
         var tmpId;
         if ( model.cid ) {
             tmpId = model.cid + ":" + key;
@@ -420,10 +437,11 @@ _.extend(View.prototype, Events, {
                 this.children = {};
             }
             this.children[ childView.cid ] = childView;
+            childView._parent = this;
 
             var currentHTML = getHTML();
             this._templateCache += currentHTML.slice(this._lastTemplateIndex);
-            this._templateCache += "<"+ className +" cid='"+ childView.cid +"'/>";
+            this._templateCache += "<" + className + " cid='" + childView.cid + "'/>";
 
             var outerHMTL = childView._outerHTML();
             print(outerHMTL);
@@ -432,7 +450,7 @@ _.extend(View.prototype, Events, {
         else {
             var cid = _.uniqueId("childView");
             this._viewOptionsByCid[ cid ] = options;
-            print( "<" + className + " cid='"+ cid +"'/>" );
+            print( "<" + className + " cid='" + cid + "'/>" );
         }
     },
 
@@ -552,7 +570,7 @@ _.extend(View.prototype, Events, {
         }
 
         for (var eventSelector in this._events) {
-            var tmp = this._eventKeyWithUI2nameAndSelector(eventSelector);
+            var tmp = _eventKey2nameAndSelector(eventSelector, this._ui);
 
             if (this._attachedEvents[tmp.type]) {
                 continue;
@@ -604,7 +622,7 @@ _.extend(View.prototype, Events, {
             selector = "";
         }
 
-        var tmp = _eventKey2nameAndSelector(eventName + " " + selector),
+        var tmp = _eventKey2nameAndSelector(eventName + " " + selector, this._ui),
             key = (tmp.type + " " + tmp.selector).trim();
 
         this._events[key] = listener;
@@ -627,12 +645,12 @@ _.extend(View.prototype, Events, {
         var tmp, eventSelector;
 
         if (selector) {
-            tmp = _eventKey2nameAndSelector(eventName + " " + selector);
+            tmp = _eventKey2nameAndSelector(eventName + " " + selector, this._ui);
             eventSelector = tmp.type + " " + tmp.selector;
             delete this._events[eventSelector];
         } else {
             for (eventSelector in this._events) {
-                tmp = _eventKey2nameAndSelector(eventSelector);
+                tmp = _eventKey2nameAndSelector(eventSelector, this._ui);
 
                 if (tmp.type == eventName) {
                     delete this._events[eventSelector];
@@ -701,7 +719,7 @@ _.extend(View.prototype, Events, {
     },
 
     _processEvent: function(e, eventSelector, method) {
-        var tmp = this._eventKeyWithUI2nameAndSelector(eventSelector),
+        var tmp = _eventKey2nameAndSelector(eventSelector, this._ui),
             type = tmp.type,
             selector = tmp.selector;
 
@@ -722,7 +740,7 @@ _.extend(View.prototype, Events, {
             return;
         }
 
-        for (var i=0, n=elements.length; i<n; i++) {
+        for (var i = 0, n = elements.length; i < n; i++) {
             element = elements[ i ];
             if ( element == e.target || element.contains(e.target) ) {
 
@@ -736,23 +754,6 @@ _.extend(View.prototype, Events, {
             }
         }
     },
-
-    _eventKeyWithUI2nameAndSelector: function(key) {
-        var tmp = _eventKey2nameAndSelector(key);
-
-        if (!this._ui) {
-            return tmp;
-        }
-
-        var ui = this._ui;
-
-        tmp.selector = tmp.selector.replace(/@ui\s*\.\s*([$\w]+)/, function(str, uiKey) {
-            return ui[uiKey];
-        });
-
-        return tmp;
-    },
-
 
     // Produces a DOM element to be assigned to your view. Exposed for
     // subclasses using an alternative DOM manipulation API.
@@ -799,10 +800,10 @@ _.extend(View.prototype, Events, {
         if (this.className) attrs["class"] = this._getClassName();
 
         for (var key in attrs) {
-            attrsHTML += key + "='"+ _.escape( attrs[key] ) +"'";
+            attrsHTML += key + "='" + _.escape( attrs[key] ) + "'";
         }
 
-        open = "<" + tagName + " cid='" + this.cid + "' "+ attrsHTML +">";
+        open = "<" + tagName + " cid='" + this.cid + "' " + attrsHTML + ">";
 
         if ( this.template ) {
             // need for virtual dom
@@ -824,8 +825,55 @@ _.extend(View.prototype, Events, {
                 this.el.setAttribute(key, attributes[key]);
             }
         }
-    }
+    },
 
+    trigger: function() {
+        if ( this._parent ) {
+            var args = [].slice.call(arguments);
+            args.unshift(this);
+            this._parent._onChildEvent.apply(this._parent, args);
+        }
+        Events.prototype.trigger.apply(this, arguments);
+    },
+
+    _onChildEvent: function(childView, type) {
+        if ( !(type in this._attachedEvents) ) {
+            return;
+        }
+
+        var args = [].slice.call(arguments);
+        args.splice(1, 1); // remove type from args
+
+        for (var eventSelector in this._events) {
+            var tmp = _eventKey2nameAndSelector(eventSelector, this._ui);
+            if ( tmp.type != type ) {
+                continue;
+            }
+
+            var className = childView.constructor.className;
+            var tmpSelector = tmp.selector.replace(className, "[cid='" + childView.cid + "']");
+            var isCollision = className == tmp.selector;
+            if ( !isCollision ) {
+                var elems = this.el.querySelectorAll(tmpSelector);
+
+                for (var i = 0, n = elems.length; i < n; i++) {
+                    if ( elems[i] == childView.el ) {
+                        isCollision = true;
+                        break;
+                    }
+                }
+            }
+
+            if ( isCollision ) {
+                var method = this._events[eventSelector];
+                method = this[method] || method;
+
+                if ( _.isFunction(method) ) {
+                    method.apply(this, args);
+                }
+            }
+        }
+    }
 });
 
 var TemplateScope = function TemplateScope(view, print) {
@@ -865,8 +913,37 @@ View._beforeExtend = function(className, protoProps) {
         delete protoProps.ui;
 
         for (var uikey in protoProps._ui) {
+
             if (/^\$/.test(uikey) && !Backbone.$) {
                 throw new Error("for $ui need jquery, please don't use $ in uikey");
+            }
+
+            var selector = protoProps._ui[ uikey ];
+            try {
+                document.querySelector( selector );
+            } catch(err) {
+                if ( err ) {
+                    throw new Error(className + ": invalid selector ui[" + uikey + "]: " + selector);
+                }
+            }
+        }
+    }
+
+    if (protoProps.events) {
+        for (var eventKey in protoProps.events) {
+            var tmp = _eventKey2nameAndSelector(eventKey, protoProps._ui);
+            // if "click": "onClick"
+            // then selector will ""
+            if ( !tmp.selector ) {
+                continue;
+            }
+
+            try {
+                document.querySelector( tmp.selector );
+            } catch(err) {
+                if ( err ) {
+                    throw new Error(className + ": invalid selector events[" + eventKey + "]");
+                }
             }
         }
     }
@@ -913,16 +990,16 @@ View._beforeExtend = function(className, protoProps) {
             " var scope = new this.TemplateScope(this, print);" +
             " scope._getHTML = function() {return __p;}; " +
             " var model = this.model, collection = this.collection, options = this.options; " +
-            "with((this.model || {attributes: {}}).attributes || {}) {"+
+            "with((this.model || {attributes: {}}).attributes || {}) {" +
             " if ( !this.vdom ) { " +
             " this._lastTemplateIndex = 0; " +
             " this._templateCache = ''; " +
             " } " +
             "with(scope) { %>" +
             templateString +
-            "<% } };"+
+            "<% } };" +
             " if ( !this.vdom ) { " +
-            " this._templateCache += __p.slice(this._lastTemplateIndex); "+
+            " this._templateCache += __p.slice(this._lastTemplateIndex); " +
             "} %>"
         );
         protoProps.template = _.template(templateString, {
