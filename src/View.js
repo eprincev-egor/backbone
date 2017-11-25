@@ -84,18 +84,16 @@ var _eventKey2nameAndSelector = function(key, ui) {
 
     if ( !ui ) {
         return {
-            type: type,
-            selector: selector
+            type,
+            selector
         };
     }
 
-    selector = selector.replace(/@ui\s*\.\s*([$\w]+)/, function(str, uiKey) {
-        return ui[uiKey];
-    });
+    selector = selector.replace(/@ui\s*\.\s*([$\w]+)/, (str, uiKey) => ui[uiKey]);
 
     return {
-        type: type,
-        selector: selector
+        type,
+        selector
     };
 };
 
@@ -126,7 +124,7 @@ _.extend(View.prototype, Events, {
     // initialization logic.
     initialize: function() {},
 
-    _validateOptions: function(options) {
+    _validateOptions(options) {
         if ( options instanceof Backbone.Model ) {
             options = {
                 model: options
@@ -457,13 +455,42 @@ _.extend(View.prototype, Events, {
     _bindUI: function() {
         this.ui = {};
 
+        var viewNames = _.keys(this.Views),
+            viewNamesRegExp = new RegExp("(^|[^\\w.#\\[])(" + viewNames.join("|") + ")($|[^\\w])");
+
         for (var uikey in this._ui) {
             var uiSelector = this._ui[uikey];
 
             if (/^\$/.test(uikey)) {
-                this.ui[uikey] = this.$(uiSelector).eq(0);
+                this.ui[uikey] = this.$(uiSelector);
             } else {
-                this.ui[uikey] = this.el.querySelector(uiSelector);
+                if ( viewNamesRegExp.test(uiSelector) ) {
+                    this.ui[uikey] = null;
+
+                    var viewName;
+                    uiSelector = uiSelector.replace(viewNamesRegExp, (str, before, name, after) => {
+                        viewName = name;
+                        return (before || "") + "[cid]" + (after || "");
+                    });
+                    var View = this.Views[ viewName ];
+                    if ( !View ) {
+                        continue;
+                    }
+
+                    var elems = this.el.querySelectorAll(uiSelector);
+                    for (var i = 0, n = elems.length; i < n; i++) {
+                        var elem = elems[i],
+                            cid = elem.getAttribute("cid"),
+                            childView = this.children[ cid ] || null;
+
+                        if ( childView instanceof View ) {
+                            this.ui[uikey] = childView;
+                            break;
+                        }
+                    }
+                } else {
+                    this.ui[uikey] = this.el.querySelector(uiSelector);
+                }
             }
         }
 
@@ -844,23 +871,40 @@ _.extend(View.prototype, Events, {
         var args = [].slice.call(arguments);
         args.splice(1, 1); // remove type from args
 
+        var name, View;
+        for (name in this.Views) {
+            View = this.Views[ name ];
+
+            if ( childView.constructor == View ) {
+                break;
+            } else {
+                View = false;
+            }
+        }
+
+        if ( !View ) {
+            return;
+        }
+
+        var regExp = new RegExp(name);
         for (var eventSelector in this._events) {
             var tmp = _eventKey2nameAndSelector(eventSelector, this._ui);
             if ( tmp.type != type ) {
                 continue;
             }
 
-            var className = childView.constructor.className;
-            var tmpSelector = tmp.selector.replace(className, "[cid='" + childView.cid + "']");
-            var isCollision = className == tmp.selector;
-            if ( !isCollision ) {
-                var elems = this.el.querySelectorAll(tmpSelector);
+            if ( !regExp.test(tmp.selector) ) {
+                continue;
+            }
 
-                for (var i = 0, n = elems.length; i < n; i++) {
-                    if ( elems[i] == childView.el ) {
-                        isCollision = true;
-                        break;
-                    }
+            var isCollision = false;
+            var selector = tmp.selector.replace(regExp, "[cid]");
+            var elems = this.el.querySelectorAll(selector);
+            for (var i = 0, n = elems.length; i < n; i++) {
+                var elem = elems[i];
+                if ( elem == childView.el ) {
+                    isCollision = true;
+                    break;
                 }
             }
 
@@ -907,6 +951,40 @@ View._beforeExtend = function(className, protoProps) {
         protoProps._options = protoProps.options;
         delete protoProps.options;
     }
+
+    // потомки наследуют scope родителей
+    protoProps.TemplateScope = this.TemplateScope.extend(className + "TemplateScope");
+
+    // proto.Views = [ChildView1, ChildView2, ...]
+    // convert to
+    // Views.ChildView1 = ChildView1
+    // Views.ChildView2 = ChildView2
+    // ...
+    var Views = {};
+
+    if (_.isArray(protoProps.Views)) {
+        _.each(protoProps.Views, (ChildView) => {
+            Views[ChildView.className] = ChildView;
+        });
+    }
+    // proto.Views = { menu: SomeMenuView }
+    else if (_.isObject(protoProps.Views)) {
+        _.extend(Views, protoProps.Views);
+    }
+
+    protoProps.Views = Views;
+
+    // дочерние классы, которые будут использоваться в шаблонах
+    _.each(Views, (value, key) => {
+        protoProps.TemplateScope.prototype[key] = function(options) {
+            if (!options) {
+                options = {};
+            }
+            var scope = this;
+            options.type = key;
+            return scope.View(options);
+        };
+    });
 
     if (protoProps.ui) {
         protoProps._ui = protoProps.ui;
@@ -981,7 +1059,7 @@ View._beforeExtend = function(className, protoProps) {
                 templateString = templateEl.innerHTML;
             }
         } catch (err) {
-            console.log(err);
+            err;
         }
 
         // это позволяет использовать элементы внутри элементов
@@ -1011,44 +1089,14 @@ View._beforeExtend = function(className, protoProps) {
 View._afterExtend = function(child) {
     var proto = child.prototype;
 
-    // потомки наследуют scope родителей
-    proto.TemplateScope = child.__super__.TemplateScope.extend(child.className + "TemplateScope");
-
-    // proto.Views = [ChildView1, ChildView2, ...]
-    // convert to
-    // Views.ChildView1 = ChildView1
-    // Views.ChildView2 = ChildView2
-    // ...
-    var Views = {};
-    Views[child.className] = child; // for Tree
-
-    if (_.isArray(proto.Views)) {
-        _.each(proto.Views, function(ChildView) {
-            Views[ChildView.className] = ChildView;
-        });
-    }
-    // proto.Views = { menu: SomeMenuView }
-    else if (_.isObject(proto.Views)) {
-        _.extend(Views, proto.Views);
-    }
-
-    proto.Views = Views;
-
-    // дочерние классы, которые будут использоваться в шаблонах
-    _.each(Views, function(value, key) {
-        proto.TemplateScope.prototype[key] = function(options) {
-            if (!options) {
-                options = {};
-            }
-            var scope = this;
-            options.type = key;
-            return scope.View(options);
-        };
-    });
-
     // when you have circular dependency
-    child.addView = function(key, SomeView) {
-        proto.Views[ key ] = SomeView;
+    child.addView = function(key, ChildView) {
+        if ( _.isFunction(key) ) {
+            ChildView = key;
+            key = ChildView.className;
+        }
+
+        proto.Views[ key ] = ChildView;
         proto.TemplateScope.prototype[key] = function(options) {
             if (!options) {
                 options = {};
@@ -1058,6 +1106,8 @@ View._afterExtend = function(child) {
             return scope.View(options);
         };
     };
+
+    child.addView(child); // for Tree
 };
 
 

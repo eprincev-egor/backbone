@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Backbone.js tree</title>
+    <title>Backbone.js Child events</title>
 </head>
 
 <body>
@@ -23,8 +23,9 @@
             })
         %></div><%
 
-        for (var i = 0, n = collection.length; i < n; i++) {
-            var model = collection.at(i);
+        var models = this.getModels();
+        for (var i = 0, n = models.length; i < n; i++) {
+            var model = models[i];
 
             %><div><%= this.getHighlightedName( model ) %></div><%
         }
@@ -66,31 +67,81 @@
             },
 
             onChangeSearchBar: function(view, value) {
+                if ( value ) {
+                    value = value.toLowerCase().trim();
+                }
                 this.searchText = value;
                 this.render();
+            },
+
+            getModels: function() {
+                var collection = this.collection,
+                    models = collection.models,
+                    searchText = this.searchText;
+
+                if ( searchText ) {
+                    models = collection.filter(function(model) {
+                        var name = model.get("name");
+                        return name && name.toLowerCase().indexOf( searchText ) != -1;
+                    });
+                }
+
+                return models;
             },
 
             getHighlightedName: function(model) {
                 var name = model.escape("name");
 
-                if ( !this.searchText ) {
+                if ( !this.searchText || !name ) {
                     return name;
                 }
 
-                return name.replace(_.escape(this.searchText), "<i>$&</i>");
+                var searchText = _.escape(this.searchText),
+                    i = name.toLowerCase().indexOf( searchText );
+
+                if ( i == -1 ) {
+                    return name;
+                }
+
+                return (
+                    name.slice(0, i) +
+                    "<u>" + name.slice( i, i + searchText.length ) + "</u>" +
+                    name.slice( i + searchText.length )
+                );
             }
         });
 
         var list = new List({
             collection: [
                 {
-                    name: "Test 1"
+                    name: "James"
                 },
                 {
-                    name: "Test 2"
+                    name: "John"
                 },
                 {
-                    name: "Test 3"
+                    name: "Robert"
+                },
+                {
+                    name: "Michael"
+                },
+                {
+                    name: "William"
+                },
+                {
+                    name: "David"
+                },
+                {
+                    name: "Richard"
+                },
+                {
+                    name: "Charles"
+                },
+                {
+                    name: "Joseph"
+                },
+                {
+                    name: "Thomas"
                 }
             ]
         });

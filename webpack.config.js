@@ -1,28 +1,25 @@
-// jshint browser: false
 "use strict";
 
 var path = require("path");
-var webpack = require("webpack");
 
 var config = {
-    devtool: 'source-map',
-    context: path.join(__dirname, 'src'),
-    entry: './index.js',
+    devtool: "source-map",
+    entry: path.join(__dirname, "src/index.js"),
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, "dist"),
         filename: "backbone.js"
     },
-    
-    resolve: {
-        alias: {
-        }
-    },
-    
-    plugins: [
-    ],
-    
+
     module: {
         rules: [
+            {
+                exclude: /(node_modules|bower_components|videojs|underscore)/,
+                test: /\.js$/,
+                loader: "babel-loader",
+                query: {
+                    presets: ["es2015"]
+                }
+            }
         ]
     }
 };
