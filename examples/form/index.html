@@ -12,11 +12,11 @@
     <script src="../../dist/backbone.js"></script>
 
     <script type="text/template" id="input-template">
-        <input <%= value( "value") %>/>
+        <input <%= value( options.key ) %>/>
         <% if ( this.btn ) { %>
             <div class="btn"></div>
         <% } %>
-        <label><%- label %></label>
+        <label><%- options.label %></label>
     </script>
 
     <script type="text/template" id="form-template">
@@ -26,6 +26,7 @@
                     type = elemParams.type;
 
                 View({
+                    model: this.model,
                     type: type,
                     key: key,
                     label: elemParams.label
@@ -40,9 +41,9 @@
             template: "#input-template",
 
             btn: false,
-            model: {
-                value: null,
-                label: ""
+            options: {
+                key: String,
+                label: String
             }
         });
 

@@ -947,6 +947,8 @@ View.TemplateScope = TemplateScope;
 View.prototype.TemplateScope = TemplateScope;
 
 View._beforeExtend = function(className, protoProps) {
+    let parent = this;
+
     if ( protoProps.options ) {
         protoProps._options = protoProps.options;
         delete protoProps.options;
@@ -972,7 +974,7 @@ View._beforeExtend = function(className, protoProps) {
         _.extend(Views, protoProps.Views);
     }
 
-    protoProps.Views = Views;
+    protoProps.Views = _.extend({}, parent.prototype.Views, Views);
 
     // дочерние классы, которые будут использоваться в шаблонах
     _.each(Views, (value, key) => {
@@ -1026,7 +1028,6 @@ View._beforeExtend = function(className, protoProps) {
         }
     }
 
-    var parent = this;
     if (protoProps.model) {
         var Model = protoProps.model;
 
