@@ -871,6 +871,32 @@
         assert.ok(view.ui.$class2 instanceof Backbone.$);
         assert.ok(view.ui.$class2.attr("class") == "class2");
 
+        view.render();
+
+        assert.ok(view.ui.id instanceof Element);
+        assert.ok(view.ui.id.id == "id");
+        assert.ok(view.ui.class1 instanceof Element);
+        assert.ok(view.ui.class1.className == "class1");
+        assert.ok(view.ui.class2 instanceof Element);
+        assert.ok(view.ui.class2.className == "class2");
+        assert.ok(view.ui.some instanceof Element);
+        assert.ok(view.ui.some.className == "class1");
+
+        assert.ok(view.ui.child1 instanceof Child1);
+        assert.ok(view.ui.child1class3 instanceof Child1);
+        assert.ok(view.ui.child1class4 instanceof Child1);
+        assert.ok(view.ui.child2 instanceof Child2);
+        assert.ok(view.ui.child2class4 instanceof Child2);
+
+        assert.ok(view.ui.noChild1 == null);
+        assert.ok(view.ui.noChild2 == null);
+
+        assert.ok(view.ui.$id instanceof Backbone.$);
+        assert.ok(view.ui.$id.attr("id") == "id");
+        assert.ok(view.ui.$class1 instanceof Backbone.$);
+        assert.ok(view.ui.$class1.attr("class") == "class1");
+        assert.ok(view.ui.$class2 instanceof Backbone.$);
+        assert.ok(view.ui.$class2.attr("class") == "class2");
 
         assert.ok(counter == 0);
         view.$(".class2").trigger("click");

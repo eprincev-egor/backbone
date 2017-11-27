@@ -1049,6 +1049,10 @@ View._beforeExtend = function(className, protoProps) {
     }
 
     // make template
+    if ( !("template" in protoProps) ) {
+        protoProps.template = "";
+    }
+
     if (_.isObject(protoProps) && _.isString(protoProps.template)) {
         var templateString = protoProps.template; // for debug
 
