@@ -388,6 +388,7 @@ _.extend(View.prototype, Events, {
     // <%= value( model, key ) %>
     // <%= value( options, key ) %>
     // <%= value( anyObject, key ) %>
+    // <% value( model, key ) %>
     _templateValue: function(model, key) {
         if (arguments.length == 1) {
             key = model;
@@ -936,11 +937,100 @@ _.extend(TemplateScope.prototype, {
     // <%= value( state, key ) %>
     //
     // set events for listening:
-    // <%= value( state, key ).on("change blur") %>
+    // <%= value( state, key ) %>
+    // <% value( state, key ) %>
     value: function(/*model, key*/) {
-        return this.view._templateValue.apply(this.view, arguments);
+        var tmpHTML = this.view._templateValue.apply(this.view, arguments);
+        this.print( tmpHTML );
     }
 });
+
+(function() {
+
+      // When customizing `templateSettings`, if you don't want to define an
+      // interpolation, evaluation or escaping regex, we need one that is
+      // guaranteed not to match.
+      var noMatch = /(.)^/;
+
+      // Certain characters need to be escaped so that they can be put into a
+      // string literal.
+      var escapes = {
+        "'":      "'",
+        "\\":     "\\",
+        "\r":     "r",
+        "\n":     "n",
+        "\u2028": "u2028",
+        "\u2029": "u2029"
+      };
+
+      var escaper = /\\|'|\r|\n|\u2028|\u2029/g;
+
+      var escapeChar = function(match) {
+        return "\\" + escapes[match];
+      };
+
+      // JavaScript micro-templating, similar to John Resig's implementation.
+      // Underscore templating handles arbitrary delimiters, preserves whitespace,
+      // and correctly escapes quotes within interpolated code.
+      // NB: `oldSettings` only exists for backwards compatibility.
+      var template = function(text, settings, oldSettings) {
+        if (!settings && oldSettings) settings = oldSettings;
+        settings = _.defaults({}, settings, _.templateSettings);
+
+        // Combine delimiters into one regular expression via alternation.
+        var matcher = RegExp([
+          (settings.escape || noMatch).source,
+          (settings.interpolate || noMatch).source,
+          (settings.evaluate || noMatch).source
+        ].join("|") + "|$", "g");
+
+        // Compile the template source, escaping string literals appropriately.
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+          source += text.slice(index, offset).replace(escaper, escapeChar);
+          index = offset + match.length;
+
+          if (escape) {
+            source += "';\n__t=(" + escape + ");\n__p+=__t==null?'':_.escape(__t);\n__p+='";
+          } else if (interpolate) {
+            source += "';\n__t=(" + interpolate + ");\n__p+=__t==null?'':__t;\n__p+='";
+          } else if (evaluate) {
+            source += "';\n" + evaluate + "\n__p+='";
+          }
+
+          // Adobe VMs need the match returned to produce the correct offest.
+          return match;
+        });
+        source += "';\n";
+
+        // If a variable is not specified, place data values in local scope.
+        if (!settings.variable) source = "with(obj||{}){\n" + source + "}\n";
+
+        source = "var __t,__p='',__j=Array.prototype.join," +
+          "print=function(){__p+=__j.call(arguments,'');};\n" +
+          source + "return __p;\n";
+
+        try {
+          var render = new Function(settings.variable || "obj", "_", source);
+        } catch (e) {
+          e.source = source;
+          throw e;
+        }
+
+        var template = function(data) {
+          return render.call(this, data, _);
+        };
+
+        // Provide the compiled source as a convenience for precompilation.
+        var argument = settings.variable || "obj";
+        template.source = "function(" + argument + "){\n" + source + "}";
+
+        return template;
+      };
+
+     View.template = template;
+})();
 
 View.TemplateScope = TemplateScope;
 
@@ -1085,7 +1175,7 @@ View._beforeExtend = function(className, protoProps) {
             " this._templateCache += __p.slice(this._lastTemplateIndex); " +
             "} %>"
         );
-        protoProps.template = _.template(templateString, {
+        protoProps.template = View.template(templateString, {
             variable: "scope"
         });
     }
